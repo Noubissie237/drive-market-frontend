@@ -10,6 +10,7 @@ import CartPage from './pages/CartPage';
 import AdvancedSearchPage from './pages/AdvanceSearchPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import PaymentPage from './pages/PaymentPage';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
           <Route path="/vehicule/:id" element={<VehicleDetailPage />} />
           <Route path="/panier" element={<CartPage />} />
           <Route path="/deep-search" element={<AdvancedSearchPage />} />
+          <Route path="/deep-search" element={<AdvancedSearchPage />} />
+          <Route path="/checkout" element={<PaymentPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
