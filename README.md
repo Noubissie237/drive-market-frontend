@@ -21,7 +21,16 @@ npm install class-variance-authority clsx tailwind-merge
 # Installation de Shadcn/ui et ses dépendances
 npm install @radix-ui/react-slot
 npm install lucide-react
+
+# Installation de dependances supplémentaires
+npm install class-variance-authority
+npm install --save-dev @types/node
+npm install react-router-dom
+npm install tailwindcss-animate class-variance-authority clsx tailwind-merge
+npm install @shadcn/ui
+npx shadcn-ui@latest init
 ```
+
 
 3. Initialisons Tailwind CSS :
 
