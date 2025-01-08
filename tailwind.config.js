@@ -56,6 +56,47 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // Ajout des keyframes pour les animations
+      keyframes: {
+        carDrive: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(500%)' }
+        },
+        cloudFloat: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' }
+        },
+        roadMove: {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '20px 0' }
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
+        },
+        titlePulse: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' }
+        },
+        buttonBounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' }
+        }
+      },
+      // Ajout des classes d'animation
+      animation: {
+        carDrive: 'carDrive 15s linear infinite',
+        cloudFloat: 'cloudFloat 6s ease-in-out infinite',
+        roadMove: 'roadMove 1s linear infinite',
+        fadeIn: 'fadeIn 0.5s ease-out forwards',
+        slideUp: 'slideUp 0.5s ease-out',
+        titlePulse: 'titlePulse 3s ease-in-out infinite',
+        buttonBounce: 'buttonBounce 2s ease-in-out infinite'
+      }
     },
   },
   plugins: [],

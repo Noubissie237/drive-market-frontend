@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingCart, User } from 'lucide-react';
 import { Button } from '../ui/button';
