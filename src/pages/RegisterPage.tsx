@@ -1,17 +1,47 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { Car, Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Car, Eye, EyeOff, Mail, Lock, User, Phone, Building2, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+// Définition des interfaces
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  address: string;
+  firstName: string;
+  lastName: string;
+  registrationNumber: string;
+}
+
+interface CustomerData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  address: string;
+  firstName?: string;
+  lastName?: string;
+  registrationNumber?: string;
+}
+
+type CustomerType = 'INDIVIDUAL' | 'CORPORATION';
+
 const RegisterPage: React.FC = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+  const [customerType, setCustomerType] = useState<CustomerType>('INDIVIDUAL');
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    address: '',
+    firstName: '',
+    lastName: '',
+    registrationNumber: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -24,10 +54,30 @@ const RegisterPage: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Logique d'inscription ici
+    
+    const customerData: CustomerData = {
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+      address: formData.address,
+      name: ''
+    };
+
+    if (customerType === 'INDIVIDUAL') {
+      customerData.name = `${formData.firstName} ${formData.lastName}`;
+      customerData.firstName = formData.firstName;
+      customerData.lastName = formData.lastName;
+    } else {
+      customerData.name = formData.name;
+      customerData.registrationNumber = formData.registrationNumber;
+    }
+
+    // TODO: Envoyer les données à l'API
+    console.log(customerData);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -48,49 +98,128 @@ const RegisterPage: React.FC = () => {
         {/* Formulaire d'inscription */}
         <Card className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Nom */}
+            {/* Sélection du type de client */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Nom
+                Type de compte
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
-                           shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setCustomerType('INDIVIDUAL')}
+                  className={`p-4 border rounded-lg text-center ${
+                    customerType === 'INDIVIDUAL'
+                      ? 'border-black bg-black text-white'
+                      : 'border-gray-300 hover:border-black'
+                  }`}
+                >
+                  <User className="h-5 w-5 mx-auto mb-2" />
+                  <span className="text-sm">Particulier</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomerType('CORPORATION')}
+                  className={`p-4 border rounded-lg text-center ${
+                    customerType === 'CORPORATION'
+                      ? 'border-black bg-black text-white'
+                      : 'border-gray-300 hover:border-black'
+                  }`}
+                >
+                  <Building2 className="h-5 w-5 mx-auto mb-2" />
+                  <span className="text-sm">Entreprise</span>
+                </button>
               </div>
             </div>
 
-            {/* Prénom */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Prénom
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+            {customerType === 'CORPORATION' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Nom de l'entreprise
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Building2 className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+                             shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                    required
+                  />
                 </div>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
-                           shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                  required
-                />
               </div>
-            </div>
+            )}
 
-            {/* Email */}
+            {customerType === 'CORPORATION' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Numéro d'enregistrement
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FileText className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    name="registrationNumber"
+                    value={formData.registrationNumber}
+                    onChange={handleChange}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+                             shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            {customerType === 'INDIVIDUAL' && (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nom
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+                               shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Prénom
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+                               shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Champs communs */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Adresse email
@@ -106,13 +235,11 @@ const RegisterPage: React.FC = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
                            shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                  placeholder="vous@exemple.fr"
                   required
                 />
               </div>
             </div>
 
-            {/* Téléphone */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Téléphone
@@ -128,13 +255,28 @@ const RegisterPage: React.FC = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
                            shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                  placeholder="+33 6 XX XX XX XX"
                   required
                 />
               </div>
             </div>
 
-            {/* Mot de passe */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Adresse
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md 
+                           shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Mot de passe
@@ -166,7 +308,6 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Confirmer mot de passe */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Confirmer le mot de passe
@@ -198,7 +339,6 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Bouton d'inscription */}
             <Button 
               type="submit" 
               className="w-full bg-black hover:bg-gray-800"
@@ -206,7 +346,6 @@ const RegisterPage: React.FC = () => {
               S'inscrire
             </Button>
 
-            {/* Lien de connexion */}
             <div className="text-center text-sm">
               <span className="text-gray-600">Déjà inscrit ?</span>
               {' '}
@@ -219,48 +358,6 @@ const RegisterPage: React.FC = () => {
             </div>
           </form>
         </Card>
-
-        {/* Séparateur */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-500">
-              Ou inscrivez-vous avec
-            </span>
-          </div>
-        </div>
-
-        {/* Boutons d'inscription sociale */}
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 
-                     shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white 
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-          >
-            <img
-              className="h-5 w-5 mr-2"
-              src="/api/placeholder/20/20"
-              alt="Google"
-            />
-            Google
-          </button>
-          <button
-            type="button"
-            className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 
-                     shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white 
-                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-          >
-            <img
-              className="h-5 w-5 mr-2"
-              src="/api/placeholder/20/20"
-              alt="Facebook"
-            />
-            Facebook
-          </button>
-        </div>
       </div>
     </div>
   );
