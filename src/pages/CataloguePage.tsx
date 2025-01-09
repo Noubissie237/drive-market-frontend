@@ -3,7 +3,7 @@ import { useQuery } from '@apollo/client';
 import { Search, SlidersHorizontal, Car, Bike } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Vehicle, GET_VEHICLES, GET_VEHICLES_BY_ENGINE_TYPE } from '../types/vehicle';
+import { Vehicle, GET_VEHICLES } from '../types/vehicle';
 import LoadingSpinner from '../components/ui/loading-spinner';
 
 const CatalogPage = () => {
