@@ -56,8 +56,8 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      // Ajout des keyframes pour les animations
       keyframes: {
+        // Animations existantes
         carDrive: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(500%)' }
@@ -85,18 +85,36 @@ module.exports = {
         buttonBounce: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-4px)' }
+        },
+        // Nouvelles animations pour le spinner
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        spinGrow: {
+          '0%': { transform: 'rotate(0deg) scale(0.95)' },
+          '50%': { transform: 'rotate(180deg) scale(1.05)' },
+          '100%': { transform: 'rotate(360deg) scale(0.95)' }
         }
       },
-      // Ajout des classes d'animation
       animation: {
+        // Animations existantes
         carDrive: 'carDrive 15s linear infinite',
         cloudFloat: 'cloudFloat 6s ease-in-out infinite',
         roadMove: 'roadMove 1s linear infinite',
         fadeIn: 'fadeIn 0.5s ease-out forwards',
         slideUp: 'slideUp 0.5s ease-out',
         titlePulse: 'titlePulse 3s ease-in-out infinite',
-        buttonBounce: 'buttonBounce 2s ease-in-out infinite'
-      }
+        buttonBounce: 'buttonBounce 2s ease-in-out infinite',
+        // Nouvelles animations pour le spinner
+        'spin-slow': 'spin 2s linear infinite',
+        'spin': 'spin 1s linear infinite',
+        'spin-fast': 'spin 0.5s linear infinite',
+        'spin-grow': 'spinGrow 1.5s ease-in-out infinite'
+      },
+      borderWidth: {
+        '3': '3px',
+      },
     },
   },
   plugins: [],

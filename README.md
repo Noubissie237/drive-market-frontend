@@ -29,6 +29,7 @@ npm install react-router-dom
 npm install tailwindcss-animate class-variance-authority clsx tailwind-merge
 npm install @shadcn/ui
 npx shadcn-ui@latest init
+npm install @apollo/client graphql
 ```
 
 

@@ -1,19 +1,10 @@
 import { useState } from 'react';
+import { useQuery } from '@apollo/client';
 import { Search, SlidersHorizontal, Car, Bike } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
-
-// Types pour nos véhicules
-interface Vehicle {
-    id: number;
-    name: string;
-    type: 'automobile' | 'scooter';
-    category: 'électrique' | 'essence';
-    price: number;
-    image: string;
-    description: string;
-    features: string[];
-}
+import { Vehicle, GET_VEHICLES, GET_VEHICLES_BY_ENGINE_TYPE } from '../types/vehicle';
+import LoadingSpinner from '../components/ui/loading-spinner';
 
 const CatalogPage = () => {
     const navigate = useNavigate();
@@ -21,47 +12,82 @@ const CatalogPage = () => {
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
 
-    // Exemple de données
-    const vehicles: Vehicle[] = [
-        {
-            id: 1,
-            name: "Tesla Model S",
-            type: "automobile",
-            category: "électrique",
-            price: 89990,
-            image: "https://b1672279.smushcdn.com/1672279/wp-content/uploads/2019/05/location-citadine-type-renault-clio-v-2-13.png?lossy=2&strip=1&webp=1",
-            description: "Berline électrique haute performance",
-            features: ["Autonomie 600km", "0-100 km/h en 3.2s", "Autopilot"]
-        },
-        {
-            id: 2,
-            name: "BMW i4",
-            type: "automobile",
-            category: "électrique",
-            price: 59900,
-            image: "https://images.ad.fr/biblio_centrale/image/site/voiture.PNG",
-            description: "Berline sportive électrique",
-            features: ["Autonomie 500km", "Technologie BMW iDrive", "Système audio premium"]
-        },
-        {
-            id: 3,
-            name: "Vespa Elettrica",
-            type: "scooter",
-            category: "électrique",
-            price: 7499,
-            image: "https://s3-eu-west-1.amazonaws.com/staticeu.izmocars.com/toolkit/commonassets/2024/24nissan/24nissanxtrailhevtekna4wdsu4bfr/24nissanxtrailhevtekna4wdsu4bfr_animations/colorpix/fr/640x480/nissan_24xtrailhevtekna4wdsu4bfr_noirintense_angular-front.webp",
-            description: "Scooter électrique urbain",
-            features: ["Autonomie urbaine", "Connectivité smartphone", "Mode Eco"]
-        }
-    ];
+    // Requête GraphQL pour récupérer les véhicules
+    const { loading, error, data } = useQuery(GET_VEHICLES);
 
     const filters = [
-        { id: 'all', label: 'Tous' },
-        { id: 'electric-car', label: 'Voitures Électriques' },
-        { id: 'gas-car', label: 'Voitures Essence' },
-        { id: 'electric-scooter', label: 'Scooters Électriques' },
-        { id: 'gas-scooter', label: 'Scooters Essence' }
+        { id: 'all', label: 'Tous', engineType: null },
+        { id: 'electric-car', label: 'Voitures Électriques', engineType: 'ELECTRIC' },
+        { id: 'gas-car', label: 'Voitures Essence', engineType: 'GASOLINE' }
     ];
+
+    // Filtrer les véhicules en fonction de la recherche
+    const filteredVehicles = data?.vehicles.filter((vehicle: Vehicle) => {
+        const searchLower = searchQuery.toLowerCase();
+        return (
+            vehicle.brand.toLowerCase().includes(searchLower) ||
+            vehicle.model.toLowerCase().includes(searchLower)
+        );
+    }) ?? [];
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <LoadingSpinner
+                    variant="secondary"
+                    size="lg"
+                    animation="grow"
+                    showLabel
+                    label="Chargement des données..."
+                    className="my-4"
+                />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+                <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
+                    {/* Icône d'erreur (optionnel) */}
+                    <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full mb-4">
+                        <svg
+                            className="h-6 w-6 text-red-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                    </div>
+
+                    {/* Titre du message d'erreur */}
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                        Oups ! Une erreur est survenue
+                    </h2>
+
+                    {/* Description de l'erreur */}
+                    <p className="text-gray-600 mb-6">
+                        Nous n'avons pas pu charger les véhicules. Veuillez réessayer plus tard ou contacter le support.
+                    </p>
+
+                    {/* Bouton pour réessayer (optionnel) */}
+                    <button
+                        onClick={() => window.location.reload()} // Recharge la page
+                        className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                        Réessayer
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -113,42 +139,40 @@ const CatalogPage = () => {
 
             {/* Grille de véhicules */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {vehicles.map((vehicle) => (
+                {filteredVehicles.map((vehicle: Vehicle) => (
                     <div key={vehicle.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                         {/* Image */}
                         <div className="relative h-48 bg-gray-200">
                             <img
-                                src={vehicle.image}
-                                alt={vehicle.name}
+                                src="https://img.20mn.fr/cyv-XZRqSp6BHl4NCe1vgik/1444x920_byd-seal-46-000-en-europe-28-000-en-chine"
+                                alt={vehicle.brand}
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute top-4 right-4">
                                 <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm">
-                                    {vehicle.category}
+                                    {vehicle.engineType}
                                 </span>
                             </div>
                         </div>
 
                         {/* Contenu */}
                         <div className="p-6">
-                            <h3 className="text-xl font-bold mb-2">{vehicle.name}</h3>
-                            <p className="text-gray-600 mb-4">{vehicle.description}</p>
+                            <h3 className="text-xl font-bold mb-2">{vehicle.brand} {vehicle.model}</h3>
+                            <p className="text-gray-600 mb-4">Année : {vehicle.year}</p>
 
                             {/* Caractéristiques */}
                             <div className="space-y-2 mb-4">
-                                {vehicle.features.map((feature, index) => (
-                                    <div key={index} className="flex items-center text-sm text-gray-600">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                                        {feature}
-                                    </div>
-                                ))}
+                                <div className="flex items-center text-sm text-gray-600">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                    Couleur : {vehicle.color}
+                                </div>
                             </div>
 
                             {/* Prix et actions */}
                             <div className="flex items-center justify-between mt-4">
                                 <span className="text-2xl font-bold">{vehicle.price.toLocaleString()}€</span>
                                 <Button
-                                    onClick={() => navigate('/vehicule/${vehicle.id}')}
+                                    onClick={() => navigate(`/vehicule/${vehicle.id}`)}
                                 >
                                     Voir détails
                                 </Button>
