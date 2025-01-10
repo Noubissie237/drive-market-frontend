@@ -13,33 +13,35 @@ import RegisterPage from './pages/RegisterPage';
 import PaymentPage from './pages/PaymentPage';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './lib/apollo-client';
+import { CartProvider } from './components/context/CartContext';
+
 
 function App() {
   return (
     <ApolloProvider client={client}>
-      <BrowserRouter>
-        <Routes>
-          {/* Routes avec AuthLayout */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Routes avec AuthLayout */}
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
 
-          {/* Routes avec MainLayout */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/catalogue" element={<CatalogPage />} />
-            <Route path="/vehicule/:id" element={<VehicleDetailPage />} />
-            <Route path="/panier" element={<CartPage />} />
-            <Route path="/deep-search" element={<AdvancedSearchPage />} />
-            <Route path="/deep-search" element={<AdvancedSearchPage />} />
-            <Route path="/checkout" element={<PaymentPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+            {/* Routes avec MainLayout */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/catalogue" element={<CatalogPage />} />
+              <Route path="/vehicule/:id" element={<VehicleDetailPage />} />
+              <Route path="/panier" element={<CartPage />} />
+              <Route path="/deep-search" element={<AdvancedSearchPage />} />
+              <Route path="/checkout" element={<PaymentPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </ApolloProvider>
-
   );
 }
 

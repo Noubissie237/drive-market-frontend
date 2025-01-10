@@ -1,24 +1,27 @@
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { Search, SlidersHorizontal, Car, Bike } from 'lucide-react';
+import { Search, SlidersHorizontal, Car, Bike, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Vehicle, GET_VEHICLES } from '../types/vehicle';
 import LoadingSpinner from '../components/ui/loading-spinner';
+import { useCart } from '../components/context/CartContext';
 
 const CatalogPage = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
+    const { addToCart } = useCart();
 
-    // Requête GraphQL pour récupérer les véhicules
     const { loading, error, data } = useQuery(GET_VEHICLES);
 
     const filters = [
-        { id: 'all', label: 'Tous', engineType: null },
-        { id: 'electric-car', label: 'Voitures Électriques', engineType: 'ELECTRIC' },
-        { id: 'gas-car', label: 'Voitures Essence', engineType: 'GASOLINE' }
+        { id: 'all', label: 'Tous' },
+        { id: 'electric-car', label: 'Voitures Électriques' },
+        { id: 'gas-car', label: 'Voitures Essence' },
+        { id: 'electric-scooter', label: 'Scooters Électriques' },
+        { id: 'gas-scooter', label: 'Scooters Essence' }
     ];
 
     // Filtrer les véhicules en fonction de la recherche
@@ -49,7 +52,6 @@ const CatalogPage = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
                 <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
-                    {/* Icône d'erreur (optionnel) */}
                     <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full mb-4">
                         <svg
                             className="h-6 w-6 text-red-600"
@@ -66,20 +68,14 @@ const CatalogPage = () => {
                             />
                         </svg>
                     </div>
-
-                    {/* Titre du message d'erreur */}
                     <h2 className="text-xl font-semibold text-gray-800 mb-2">
                         Oups ! Une erreur est survenue
                     </h2>
-
-                    {/* Description de l'erreur */}
                     <p className="text-gray-600 mb-6">
                         Nous n'avons pas pu charger les véhicules. Veuillez réessayer plus tard ou contacter le support.
                     </p>
-
-                    {/* Bouton pour réessayer (optionnel) */}
                     <button
-                        onClick={() => window.location.reload()} // Recharge la page
+                        onClick={() => window.location.reload()}
                         className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                     >
                         Réessayer
@@ -91,12 +87,12 @@ const CatalogPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Header avec recherche et filtres */}
             <div className="mb-8">
-                <h1 className="text-4xl font-bold mb-6">Catalogue de Véhicules</h1>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-4xl font-bold">Catalogue de Véhicules</h1>
+                </div>
 
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    {/* Barre de recherche */}
                     <div className="relative flex-grow">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
@@ -108,7 +104,6 @@ const CatalogPage = () => {
                         />
                     </div>
 
-                    {/* Bouton filtres */}
                     <Button
                         onClick={() => setShowFilters(!showFilters)}
                         variant="outline"
@@ -119,7 +114,6 @@ const CatalogPage = () => {
                     </Button>
                 </div>
 
-                {/* Filtres */}
                 {showFilters && (
                     <div className="flex flex-wrap gap-2 mb-6">
                         {filters.map((filter) => (
@@ -137,11 +131,9 @@ const CatalogPage = () => {
                 )}
             </div>
 
-            {/* Grille de véhicules */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredVehicles.map((vehicle: Vehicle) => (
                     <div key={vehicle.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                        {/* Image */}
                         <div className="relative h-48 bg-gray-200">
                             <img
                                 src="https://img.20mn.fr/cyv-XZRqSp6BHl4NCe1vgik/1444x920_byd-seal-46-000-en-europe-28-000-en-chine"
@@ -155,12 +147,11 @@ const CatalogPage = () => {
                             </div>
                         </div>
 
-                        {/* Contenu */}
                         <div className="p-6">
                             <h3 className="text-xl font-bold mb-2">{vehicle.brand} {vehicle.model}</h3>
-                            <p className="text-gray-600 mb-4">Année : {vehicle.year}</p>
+                            <p className="text-gray-600 mb-4">Année : {vehicle.year}
+                            </p>
 
-                            {/* Caractéristiques */}
                             <div className="space-y-2 mb-4">
                                 <div className="flex items-center text-sm text-gray-600">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
@@ -168,14 +159,24 @@ const CatalogPage = () => {
                                 </div>
                             </div>
 
-                            {/* Prix et actions */}
                             <div className="flex items-center justify-between mt-4">
                                 <span className="text-2xl font-bold">{vehicle.price.toLocaleString()}€</span>
-                                <Button
-                                    onClick={() => navigate(`/vehicule/${vehicle.id}`)}
-                                >
-                                    Voir détails
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            addToCart(vehicle);
+                                            // On pourrait ajouter une notification ici si nécessaire
+                                        }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Ajouter
+                                    </Button>
+                                    <Button onClick={() => navigate(`/vehicule/${vehicle.id}`)}>
+                                        Voir détails
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
