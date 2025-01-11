@@ -3,7 +3,8 @@ import { useQuery } from '@apollo/client';
 import { Search, SlidersHorizontal, Car, Bike, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Vehicle, GET_VEHICLES } from '../types/vehicle';
+import { Vehicle } from '../types/vehicle';
+import { GET_VEHICLES } from '../api/vehicleApi';
 import LoadingSpinner from '../components/ui/loading-spinner';
 import { useCart } from '../components/context/CartContext';
 
@@ -152,12 +153,12 @@ const CatalogPage = () => {
                             <p className="text-gray-600 mb-4">Année : {vehicle.year}
                             </p>
 
-                            <div className="space-y-2 mb-4">
+                            {/* <div className="space-y-2 mb-4">
                                 <div className="flex items-center text-sm text-gray-600">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
                                     Couleur : {vehicle.color}
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="flex items-center justify-between mt-4">
                                 <span className="text-2xl font-bold">{vehicle.price.toLocaleString()}€</span>

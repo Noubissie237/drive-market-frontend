@@ -14,6 +14,7 @@ import PaymentPage from './pages/PaymentPage';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './lib/apollo-client';
 import { CartProvider } from './components/context/CartContext';
+import VehiclesAdminPage from './pages/admin/vehicles';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
               <Route path="/deep-search" element={<AdvancedSearchPage />} />
               <Route path="/checkout" element={<PaymentPage />} />
               <Route path="*" element={<NotFoundPage />} />
+              <Route path="/admin" element={<VehiclesAdminPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

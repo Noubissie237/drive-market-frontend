@@ -1,300 +1,75 @@
-import { gql } from '@apollo/client';
+export interface Vehicle {
+  id: string;
+  brand: string;
+  model: string;
+  price: number;
+  year: number;
+  engineType: string;
+  description: string;
+  availableColors: VehicleColor[];
+  images: VehicleImage[];
+  options: VehicleOption[];
+  warranty: Warranty;
+  availability: Availability;
+  features: string[];
+  specs: Specifications;
+}
 
-// Types de base
-export type EngineType = 'ELECTRIC' | 'GASOLINE' | 'DIESEL' | 'HYBRID';
+export interface VehicleColor {
+  id?: string;
+  name: string;
+  hexCode: string;
+  price: number;
+}
+
+export interface VehicleImage {
+  id?: string;
+  url: string;
+  alt: string;
+  isPrimary: boolean;
+}
+
+export interface VehicleOption {
+  id?: string;
+  name: string;
+  price: number;
+  description: string;
+  incompatibleWith: string[];
+}
+
+export interface Warranty {
+  years: number;
+  kilometers: number;
+}
+
+export interface Availability {
+  inStock: boolean;
+  deliveryTime: number;
+}
 
 export interface Specification {
   label: string;
   value: string;
 }
 
-export interface Dimension {
-  label: string;
-  value: string;
+export interface Specifications {
+  performance: Specification[];
+  dimensions: Specification[];
 }
 
-export interface Option {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  incompatibleWith?: string[];
-}
-
-export interface VehicleImage {
-  id: string;
-  url: string;
-  alt: string;
-  isPrimary: boolean;
-}
-
-// Spécifications spécifiques aux véhicules électriques
-export interface ElectricSpecs {
-  batteryCapacity: number; // en kWh
-  range: number; // en km
+export interface ElectricCar extends Vehicle {
+  batteryCapacity: number;
+  range: number;
   chargingTime: {
-    normal: number; // en heures
-    fast: number; // en minutes
+    normal: number;
+    fast: number;
   };
-  powerConsumption: number; // en kWh/100km
+  powerConsumption: number;
 }
 
-// Spécifications spécifiques aux véhicules thermiques
-export interface GasolineSpecs {
-  engineDisplacement: number; // en cm3
-  fuelTankCapacity: number; // en litres
-  fuelConsumption: number; // en L/100km
-  co2Emissions: number; // en g/km
+export interface GasolineCar extends Vehicle {
+  engineDisplacement: number;
+  fuelTankCapacity: number;
+  fuelConsumption: number;
+  co2Emissions: number;
 }
-
-// Interface principale du véhicule
-export interface Vehicle {
-  id: string;
-  brand: string;
-  model: string;
-  engineType: EngineType;
-  price: number;
-  year: number;
-  colors: {
-    id: string;
-    name: string;
-    hexCode: string;
-    price: number;
-  }[];
-  description: string;
-  
-  // Spécifications techniques
-  specs: {
-    performance: Specification[];
-    dimensions: Dimension[];
-    features: string[];
-  };
-  
-  // Spécifications spécifiques au type de moteur
-  engineSpecs: ElectricSpecs | GasolineSpecs;
-  
-  // Images
-  images: VehicleImage[];
-  
-  // Options disponibles
-  options: Option[];
-  
-  // Informations additionnelles
-  warranty: {
-    years: number;
-    kilometers: number;
-  };
-  availability: {
-    inStock: boolean;
-    deliveryTime: number; // en semaines
-  };
-}
-
-// Queries GraphQL
-export const GET_VEHICLES = gql`
-  query GetVehicles {
-    vehicles {
-      id
-      brand
-      model
-      engineType
-      price
-      year
-      colors {
-        id
-        name
-        hexCode
-        price
-      }
-      description
-      specs {
-        performance {
-          label
-          value
-        }
-        dimensions {
-          label
-          value
-        }
-        features
-      }
-      engineSpecs {
-        ... on ElectricSpecs {
-          batteryCapacity
-          range
-          chargingTime {
-            normal
-            fast
-          }
-          powerConsumption
-        }
-        ... on GasolineSpecs {
-          engineDisplacement
-          fuelTankCapacity
-          fuelConsumption
-          co2Emissions
-        }
-      }
-      images {
-        id
-        url
-        alt
-        isPrimary
-      }
-      options {
-        id
-        name
-        price
-        description
-        incompatibleWith
-      }
-      warranty {
-        years
-        kilometers
-      }
-      availability {
-        inStock
-        deliveryTime
-      }
-    }
-  }
-`;
-
-export const GET_VEHICLES_BY_ENGINE_TYPE = gql`
-  query GetVehiclesByEngineType($engineType: EngineType!) {
-    vehiclesByEngineType(engineType: $engineType) {
-      id
-      brand
-      model
-      engineType
-      price
-      year
-      colors {
-        id
-        name
-        hexCode
-        price
-      }
-      description
-      specs {
-        performance {
-          label
-          value
-        }
-        dimensions {
-          label
-          value
-        }
-        features
-      }
-      engineSpecs {
-        ... on ElectricSpecs {
-          batteryCapacity
-          range
-          chargingTime {
-            normal
-            fast
-          }
-          powerConsumption
-        }
-        ... on GasolineSpecs {
-          engineDisplacement
-          fuelTankCapacity
-          fuelConsumption
-          co2Emissions
-        }
-      }
-      images {
-        id
-        url
-        alt
-        isPrimary
-      }
-      options {
-        id
-        name
-        price
-        description
-        incompatibleWith
-      }
-      warranty {
-        years
-        kilometers
-      }
-      availability {
-        inStock
-        deliveryTime
-      }
-    }
-  }
-`;
-
-// Query pour obtenir un véhicule spécifique
-export const GET_VEHICLE_BY_ID = gql`
-  query GetVehicleById($id: ID!) {
-    vehicle(id: $id) {
-      id
-      brand
-      model
-      engineType
-      price
-      year
-      colors {
-        id
-        name
-        hexCode
-        price
-      }
-      description
-      specs {
-        performance {
-          label
-          value
-        }
-        dimensions {
-          label
-          value
-        }
-        features
-      }
-      engineSpecs {
-        ... on ElectricSpecs {
-          batteryCapacity
-          range
-          chargingTime {
-            normal
-            fast
-          }
-          powerConsumption
-        }
-        ... on GasolineSpecs {
-          engineDisplacement
-          fuelTankCapacity
-          fuelConsumption
-          co2Emissions
-        }
-      }
-      images {
-        id
-        url
-        alt
-        isPrimary
-      }
-      options {
-        id
-        name
-        price
-        description
-        incompatibleWith
-      }
-      warranty {
-        years
-        kilometers
-      }
-      availability {
-        inStock
-        deliveryTime
-      }
-    }
-  }
-`;
