@@ -130,7 +130,7 @@ const PaymentPage = () => {
                       <Check className="h-5 w-5" />
                       <div>
                         <p className="font-medium">Financement</p>
-                        <p className="text-sm text-gray-600">À partir de {orderSummary.monthlyPayment}€/mois sur 72 mois</p>
+                        <p className="text-sm text-gray-600">À partir de {orderSummary.monthlyPayment}XAF/mois sur 72 mois</p>
                       </div>
                     </div>
                     <div className={`h-4 w-4 rounded-full border-2 ${wantCredit ? 'bg-black border-black' : 'border-gray-300'}`} />
@@ -157,7 +157,7 @@ const PaymentPage = () => {
                           <input
                             type="text"
                             className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                            placeholder="10000€"
+                            placeholder="10000XAF"
                           />
                         </div>
                       </div>
@@ -291,11 +291,11 @@ const PaymentPage = () => {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Sous-total</span>
-                      <span>{orderSummary.subtotal.toLocaleString()}€</span>
+                      <span>{orderSummary.subtotal.toLocaleString()}XAF</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">TVA</span>
-                      <span>{orderSummary.tax.toLocaleString()}€</span>
+                      <span>{orderSummary.tax.toLocaleString()}XAF</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Livraison</span>
@@ -308,12 +308,12 @@ const PaymentPage = () => {
                     <span className="font-medium">Total</span>
                     {wantCredit ? (
                       <div className="text-right">
-                        <div className="text-lg font-medium">{orderSummary.monthlyPayment}€/mois</div>
+                        <div className="text-lg font-medium">{orderSummary.monthlyPayment}XAF/mois</div>
                         <div className="text-xs text-gray-600">sur 72 mois • 4.9% APR</div>
                       </div>
                     ) : (
                       <span className="text-lg font-medium">
-                        {orderSummary.total.toLocaleString()}€
+                        {orderSummary.total.toLocaleString()}XAF
                       </span>
                     )}
                   </div>

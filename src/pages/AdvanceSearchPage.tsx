@@ -71,7 +71,7 @@ const AdvancedSearchPage: React.FC = () => {
                 {/* Prix avec design amélioré */}
                 <div>
                   <label className="block text-xs font-medium mb-4 text-gray-700">
-                    Prix ({priceRange[0].toLocaleString('fr-FR')} € - {priceRange[1].toLocaleString('fr-FR')} €)
+                    Prix ({priceRange[0].toLocaleString('fr-FR')} XAF - {priceRange[1].toLocaleString('fr-FR')} XAF)
                   </label>
                   <input
                     type="range"
@@ -191,7 +191,7 @@ const AdvancedSearchPage: React.FC = () => {
                           <p className="text-gray-600 text-sm">2023 • 15 000 km • Automatique • Électrique</p>
                         </div>
                         <p className="text-lg font-medium bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-                          53 990 €
+                          53 990 XAF
                         </p>
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">

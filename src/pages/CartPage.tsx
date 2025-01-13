@@ -121,7 +121,7 @@ const CartPage: React.FC = () => {
                           </button>
                         </div>
                         <p className="text-xl font-medium">
-                          {(item.price * getQuantity(item.id)).toLocaleString('fr-FR')} €
+                          {(item.price * getQuantity(item.id)).toLocaleString('fr-FR')} XAF
                         </p>
                       </div>
                     </div>
@@ -157,7 +157,7 @@ const CartPage: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sous-total</span>
-                    <span className="font-medium">{subtotal.toLocaleString('fr-FR')} €</span>
+                    <span className="font-medium">{subtotal.toLocaleString('fr-FR')} XAF</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Livraison</span>
@@ -166,7 +166,7 @@ const CartPage: React.FC = () => {
                   <div className="h-px bg-gray-200 my-4" />
                   <div className="flex justify-between text-lg font-medium">
                     <span>Total</span>
-                    <span>{total.toLocaleString('fr-FR')} €</span>
+                    <span>{total.toLocaleString('fr-FR')} XAF</span>
                   </div>
 
                   <Button 

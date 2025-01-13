@@ -1,75 +1,62 @@
+// Types d'énumération pour le statut et le type de véhicule
+export type VehicleStatus = 'AVAILABLE' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'CLEARANCE';
+export type VehicleType = 'CAR' | 'MOTORCYCLE' | 'SCOOTER';
+export type PropulsionType = 'ELECTRIC' | 'GASOLINE' | 'HYBRID';
+
+// Interface principale pour un véhicule
 export interface Vehicle {
   id: string;
-  brand: string;
-  model: string;
+  name: string;
   price: number;
-  year: number;
-  engineType: string;
-  description: string;
-  availableColors: VehicleColor[];
+  stock: number;
+  status: VehicleStatus;
+  specifications: string;
   images: VehicleImage[];
   options: VehicleOption[];
-  warranty: Warranty;
-  availability: Availability;
-  features: string[];
-  specs: Specifications;
 }
 
-export interface VehicleColor {
-  id?: string;
-  name: string;
-  hexCode: string;
-  price: number;
-}
-
+// Interface pour les images
 export interface VehicleImage {
-  id?: string;
+  id: string;
   url: string;
-  alt: string;
-  isPrimary: boolean;
+  caption: string;
+  order: number;
 }
 
+// Interface pour les options
 export interface VehicleOption {
-  id?: string;
+  id: string;
   name: string;
-  price: number;
   description: string;
-  incompatibleWith: string[];
+  price: number;
+  incompatibleOptions: {
+    id: string;
+    name: string;
+  }[];
 }
 
-export interface Warranty {
-  years: number;
-  kilometers: number;
+// Interface pour les critères de recherche
+export interface SearchCriteria {
+  minPrice?: number;
+  maxPrice?: number;
+  type?: VehicleType;
+  propulsion?: PropulsionType;
+  inStock?: boolean;
+  status?: VehicleStatus[];
 }
 
-export interface Availability {
-  inStock: boolean;
-  deliveryTime: number;
+// Interface pour l'entrée d'option de véhicule
+export interface VehicleOptionInput {
+  name: string;
+  description: string;
+  price: number;
+  incompatibleOptionIds?: string[];
 }
 
-export interface Specification {
-  label: string;
-  value: string;
-}
-
-export interface Specifications {
-  performance: Specification[];
-  dimensions: Specification[];
-}
-
-export interface ElectricCar extends Vehicle {
-  batteryCapacity: number;
-  range: number;
-  chargingTime: {
-    normal: number;
-    fast: number;
-  };
-  powerConsumption: number;
-}
-
-export interface GasolineCar extends Vehicle {
-  engineDisplacement: number;
-  fuelTankCapacity: number;
-  fuelConsumption: number;
-  co2Emissions: number;
+// Interface pour la réponse de l'API de recherche
+export interface SearchResponse {
+  vehicles: Vehicle[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

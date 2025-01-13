@@ -239,7 +239,7 @@ const VehicleDetailPage = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-medium">
-                          {option.price.toLocaleString()}€
+                          {option.price.toLocaleString()}XAF
                         </span>
                         <Button
                           variant={isSelected ? "default" : "outline"}
@@ -262,7 +262,7 @@ const VehicleDetailPage = () => {
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-600">Prix de base</span>
               <span className="font-medium">
-                {vehicleDetails.price.toLocaleString()}€
+                {vehicleDetails.price.toLocaleString()}XAF
               </span>
             </div>
             {selectedOptions.map(optionId => {
@@ -271,14 +271,14 @@ const VehicleDetailPage = () => {
                 <div key={option.id} className="flex items-center justify-between mb-4">
                   <span className="text-gray-600">{option.name}</span>
                   <span className="font-medium">
-                    {option.price.toLocaleString()}€
+                    {option.price.toLocaleString()}XAF
                   </span>
                 </div>
               ) : null;
             })}
             <div className="flex items-center justify-between mb-6 text-lg font-bold">
               <span>Prix total</span>
-              <span>{calculateTotalPrice().toLocaleString()}€</span>
+              <span>{calculateTotalPrice().toLocaleString()}XAF</span>
             </div>
             <Button className="w-full" size="lg">
               <ShoppingCart className="mr-2 h-5 w-5" />
@@ -551,7 +551,7 @@ export default VehicleDetailPage;
 //                       </div>
 //                       <div className="flex items-center gap-4">
 //                         <span className="font-medium">
-//                           {option.price.toLocaleString()}€
+//                           {option.price.toLocaleString()}XAF
 //                         </span>
 //                         <Button
 //                           variant={isSelected ? "default" : "outline"}
@@ -574,7 +574,7 @@ export default VehicleDetailPage;
 //             <div className="flex items-center justify-between mb-4">
 //               <span className="text-gray-600">Prix de base</span>
 //               <span className="font-medium">
-//                 {vehicleDetails.price.toLocaleString()}€
+//                 {vehicleDetails.price.toLocaleString()}XAF
 //               </span>
 //             </div>
 //             {selectedOptions.map(optionId => {
@@ -583,14 +583,14 @@ export default VehicleDetailPage;
 //                 <div key={option.id} className="flex items-center justify-between mb-4">
 //                   <span className="text-gray-600">{option.name}</span>
 //                   <span className="font-medium">
-//                     {option.price.toLocaleString()}€
+//                     {option.price.toLocaleString()}XAF
 //                   </span>
 //                 </div>
 //               ) : null;
 //             })}
 //             <div className="flex items-center justify-between mb-6 text-lg font-bold">
 //               <span>Prix total</span>
-//               <span>{calculateTotalPrice().toLocaleString()}€</span>
+//               <span>{calculateTotalPrice().toLocaleString()}XAF</span>
 //             </div>
 //             <Button className="w-full" size="lg">
 //               <ShoppingCart className="mr-2 h-5 w-5" />

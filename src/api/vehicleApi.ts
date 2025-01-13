@@ -1,101 +1,107 @@
 import { gql } from '@apollo/client';
 
+// Requête pour récupérer tous les véhicules
 export const GET_VEHICLES = gql`
   query GetVehicles {
     vehicles {
       id
-      brand
-      model
+      name
       price
-      year
-      engineType
-      description
-      availableColors {
-        id
-        name
-        hexCode
-        price
-      }
+      stock
+      status
+      specifications
       images {
         id
         url
-        alt
-        isPrimary
+        caption
+        order
       }
       options {
         id
         name
-        price
         description
-        incompatibleWith
-      }
-      warranty {
-        years
-        kilometers
-      }
-      availability {
-        inStock
-        deliveryTime
-      }
-      features
-      specs {
-        performance {
-          label
-          value
+        price
+        incompatibleOptions {
+          id
+          name
         }
-        dimensions {
-          label
-          value
-        }
-      }
-      ... on ElectricCar {
-        batteryCapacity
-        range
-        chargingTime {
-          normal
-          fast
-        }
-        powerConsumption
-      }
-      ... on GasolineCar {
-        engineDisplacement
-        fuelTankCapacity
-        fuelConsumption
-        co2Emissions
       }
     }
   }
 `;
 
-export const ADD_ELECTRIC_CAR = gql`
-  mutation AddElectricCar($vehicle: ElectricCarInput!) {
-    addElectricCar(vehicle: $vehicle) {
+// Mutation pour créer un véhicule
+export const ADD_VEHICLE = gql`
+  mutation AddVehicle($type: VehicleType!, $propulsion: PropulsionType!) {
+    createVehicle(type: $type, propulsion: $propulsion) {
       id
-      # ... autres champs
+      name
+      price
+      stock
+      status
     }
   }
 `;
 
-export const ADD_GASOLINE_CAR = gql`
-  mutation AddGasolineCar($vehicle: GasolineCarInput!) {
-    addGasolineCar(vehicle: $vehicle) {
-      id
-      # ... autres champs
-    }
-  }
-`;
-
+// Mutation pour mettre à jour un véhicule
 export const UPDATE_VEHICLE = gql`
-  mutation UpdateVehicle($id: ID!, $vehicle: VehicleInput!) {
-    updateVehicle(id: $id, vehicle: $vehicle) {
+  mutation UpdateVehicle($id: ID!, $name: String, $price: Float, $stock: Int) {
+    updateVehicle(id: $id, name: $name, price: $price, stock: $stock) {
       id
-      # ... autres champs
+      name
+      price
+      stock
+      status
     }
   }
 `;
 
-export const REMOVE_VEHICLE = gql`
-  mutation RemoveVehicle($id: ID!) {
-    removeVehicle(id: $id)
+// Mutation pour supprimer un véhicule
+export const DELETE_VEHICLE = gql`
+  mutation DeleteVehicle($id: ID!) {
+    deleteVehicle(id: $id)
+  }
+`;
+
+// Mutation pour ajouter une option à un véhicule
+export const ADD_OPTION_TO_VEHICLE = gql`
+  mutation AddOptionToVehicle($vehicleId: ID!, $optionInput: VehicleOptionInput!) {
+    addOptionToVehicle(vehicleId: $vehicleId, optionInput: $optionInput) {
+      id
+      name
+      description
+      price
+    }
+  }
+`;
+
+// Requête pour récupérer les véhicules par critères
+export const GET_VEHICLES_BY_CRITERIA = gql`
+  query GetVehiclesByCriteria($criteria: SearchCriteriaInput!) {
+    vehiclesByCriteria(criteria: $criteria) {
+      id
+      name
+      price
+      stock
+      status
+      specifications
+      images {
+        id
+        url
+      }
+    }
+  }
+`;
+
+// Requête pour récupérer les véhicules par statut
+export const GET_VEHICLES_BY_STATUS = gql`
+  query GetVehiclesByStatus($status: VehicleStatus!) {
+    vehiclesByStatus(status: $status) {
+      id
+      name
+      price
+      stock
+      status
+    }
   }
 `;

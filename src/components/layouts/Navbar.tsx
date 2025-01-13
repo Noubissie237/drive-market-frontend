@@ -96,8 +96,8 @@ const Navbar = () => {
                         {cart.map((item) => (
                           <div key={item.vehicle.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div>
-                              <h4 className="font-medium">{item.vehicle.brand} {item.vehicle.model}</h4>
-                              <p className="text-sm text-gray-500">{item.vehicle.price.toLocaleString()}€</p>
+                              <h4 className="font-medium">{item.vehicle.name}</h4>
+                              <p className="text-sm text-gray-500">{item.vehicle.price.toLocaleString()} XAF</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <button
@@ -126,7 +126,7 @@ const Navbar = () => {
                       <div className="pt-4 mt-4 border-t">
                         <div className="flex justify-between items-center mb-4">
                           <span className="font-medium">Total</span>
-                          <span className="font-bold">{getTotalPrice().toLocaleString()}€</span>
+                          <span className="font-bold">{getTotalPrice().toLocaleString()} XAF</span>
                         </div>
                         <Button
                           className="w-full"
