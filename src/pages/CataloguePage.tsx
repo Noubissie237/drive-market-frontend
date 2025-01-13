@@ -29,11 +29,6 @@ const CatalogPage = () => {
     return { label: 'Rupture de stock', className: 'bg-red-500' };
   };
 
-  const getPrimaryImage = (images: Vehicle['images']) => {
-    const sortedImages = [...images].sort((a, b) => a.order - b.order);
-    return sortedImages[0]?.url || 'https://b1672279.smushcdn.com/1672279/wp-content/uploads/2019/05/location-citadine-type-renault-clio-v-2-13.png?lossy=2&strip=1&webp=1';
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -109,7 +104,7 @@ const CatalogPage = () => {
             <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48 bg-gray-200">
               <img
-                src={getPrimaryImage(vehicle.images)}
+                src={vehicle.images[0].url}
                 alt={vehicle.name}
                 className="w-full h-full object-cover"
               />
@@ -126,7 +121,7 @@ const CatalogPage = () => {
                 <h3 className="text-xl font-bold mb-2">{vehicle.name}</h3>
                 <p className="text-gray-600 mb-4">{vehicle.specifications}</p>
 
-                {vehicle.options.length > 0 && (
+                {/* {vehicle.options.length > 0 && (
                   <div className="space-y-2 mb-4">
                     <p className="font-medium">Options disponibles :</p>
                     <div className="flex flex-wrap gap-2">
@@ -140,7 +135,7 @@ const CatalogPage = () => {
                       )}
                     </div>
                   </div>
-                )}
+                )} */}
 
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-xl font-bold">
