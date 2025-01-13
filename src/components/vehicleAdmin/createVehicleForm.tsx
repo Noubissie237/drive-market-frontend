@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { gql } from '@apollo/client';
 import { ImageIcon } from 'lucide-react';
+import { ADD_VEHICLE } from '../../api/vehicleApi';
 import {
   Dialog,
   DialogContent,
@@ -38,50 +39,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-const CREATE_VEHICLE = gql`
-  mutation CreateVehicle(
-    $type: VehicleType!,
-    $propulsion: PropulsionType!,
-    $name: String!,
-    $price: Float!,
-    $stock: Int!,
-    $specifications: String!,
-    $status: VehicleStatus!,
-    $images: [VehicleImageInput!],
-    $options: [VehicleOptionInput!]
-  ) {
-    createVehicle(
-      type: $type,
-      propulsion: $propulsion,
-      name: $name,
-      price: $price,
-      stock: $stock,
-      specifications: $specifications,
-      status: $status,
-      images: $images,
-      options: $options
-    ) {
-      id
-      name
-      price
-      stock
-      status
-      specifications
-      images {
-        id
-        url
-        caption
-        order
-      }
-      options {
-        id
-        name
-        description
-        price
-      }
-    }
-  }
-`;
 
 const formSchema = z.object({
   name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
@@ -133,7 +90,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
   onClose,
   onSuccess
 }) => {
-  const [createVehicle, { loading }] = useMutation(CREATE_VEHICLE);
+  const [createVehicle, { loading }] = useMutation(ADD_VEHICLE);
   const [uploadImage] = useMutation(UPLOAD_IMAGE);
   const [previews, setPreviews] = useState<{ [key: number]: string }>({});
 
@@ -159,20 +116,23 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
           type: values.type,
           propulsion: values.propulsion,
           name: values.name,
-          price: parseFloat(values.price),
-          stock: parseInt(values.stock),
+          price: parseFloat(values.price), // Convertir en Float
+          stock: parseInt(values.stock), // Convertir en Int
           specifications: values.specifications,
           status: values.status,
-          images: values.images,
+          images: values.images, // Déjà au bon format
           options: values.options.map(opt => ({
             ...opt,
-            price: parseFloat(opt.price)
+            price: parseFloat(opt.price), // Convertir en Float
+            incompatibleOptions: opt.incompatibleOptions || [] // Assurer que c'est un tableau
           }))
         }
       });
+
+      // Réinitialiser le formulaire après la soumission
       form.reset();
-      onSuccess?.();
-      onClose();
+      onSuccess?.(); // Appeler la fonction de succès si elle existe
+      onClose(); // Fermer le formulaire
     } catch (error) {
       console.error('Erreur lors de la création du véhicule:', error);
     }

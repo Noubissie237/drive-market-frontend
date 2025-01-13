@@ -32,26 +32,86 @@ export const GET_VEHICLES = gql`
 
 // Mutation pour créer un véhicule
 export const ADD_VEHICLE = gql`
-  mutation AddVehicle($type: VehicleType!, $propulsion: PropulsionType!) {
-    createVehicle(type: $type, propulsion: $propulsion) {
+  mutation AddVehicle(
+    $type: VehicleType!
+    $propulsion: PropulsionType!
+    $name: String
+    $price: Float
+    $stock: Int
+    $specifications: String
+    $images: [VehicleImageInput]
+    $options: [VehicleOptionInput]
+  ) {
+    createVehicle(
+      type: $type
+      propulsion: $propulsion
+      name: $name
+      price: $price
+      stock: $stock
+      specifications: $specifications
+      images: $images
+      options: $options
+    ) {
       id
       name
       price
       stock
       status
+      specifications
+      images {
+        id
+        url
+        caption
+        order
+      }
+      options {
+        id
+        name
+        description
+        price
+      }
     }
   }
 `;
 
 // Mutation pour mettre à jour un véhicule
 export const UPDATE_VEHICLE = gql`
-  mutation UpdateVehicle($id: ID!, $name: String, $price: Float, $stock: Int) {
-    updateVehicle(id: $id, name: $name, price: $price, stock: $stock) {
+  mutation UpdateVehicle(
+    $id: ID!
+    $name: String
+    $price: Float
+    $stock: Int
+    $specifications: String
+    $images: [VehicleImageInput]
+    $options: [VehicleOptionInput]
+  ) {
+    updateVehicle(
+      id: $id
+      name: $name
+      price: $price
+      stock: $stock
+      specifications: $specifications
+      images: $images
+      options: $options
+    ) {
       id
       name
       price
       stock
       status
+      specifications
+      images {
+        id
+        url
+        caption
+        order
+      }
+      options {
+        id
+        name
+        description
+        price
+      }
     }
   }
 `;
@@ -71,6 +131,10 @@ export const ADD_OPTION_TO_VEHICLE = gql`
       name
       description
       price
+      incompatibleOptions {
+        id
+        name
+      }
     }
   }
 `;
@@ -88,6 +152,18 @@ export const GET_VEHICLES_BY_CRITERIA = gql`
       images {
         id
         url
+        caption
+        order
+      }
+      options {
+        id
+        name
+        description
+        price
+        incompatibleOptions {
+          id
+          name
+        }
       }
     }
   }
@@ -102,6 +178,23 @@ export const GET_VEHICLES_BY_STATUS = gql`
       price
       stock
       status
+      specifications
+      images {
+        id
+        url
+        caption
+        order
+      }
+      options {
+        id
+        name
+        description
+        price
+        incompatibleOptions {
+          id
+          name
+        }
+      }
     }
   }
 `;
