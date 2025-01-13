@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-lg font-bold mb-4">AutoVente</h3>
+            <h3 className="text-lg font-bold mb-4">DriveMarket</h3>
             <p className="text-gray-400">
               Votre partenaire de confiance pour l'achat de véhicules neufs et d'occasion.
             </p>
@@ -38,7 +38,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>Email: contact@autovente.com</li>
+              <li>Email: contact@DriveMarket.com</li>
               <li>Tél: +123 456 789</li>
               <li>Adresse: 123 Rue du Commerce</li>
             </ul>
@@ -47,7 +47,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} AutoVente. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} DriveMarket. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

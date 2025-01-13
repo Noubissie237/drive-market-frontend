@@ -89,7 +89,7 @@ const HomePage = () => {
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <h1 className="text-4xl font-light text-center">
-            AUTOVENTE
+            DriveMarket
           </h1>
         </div>
 
@@ -145,7 +145,7 @@ const HomePage = () => {
               L'EXCELLENCE AU SERVICE DE VOTRE MOBILITÉ
             </h2>
             <p className="text-lg text-gray-600 mb-12">
-              Depuis plus de 20 ans, AutoVente sélectionne pour vous les meilleurs véhicules, 
+              Depuis plus de 20 ans, DriveMarket sélectionne pour vous les meilleurs véhicules, 
               alliant performance, confort et innovation. Notre expertise vous garantit 
               une expérience d'achat unique et personnalisée.
             </p>
@@ -217,7 +217,7 @@ const HomePage = () => {
                 role: "Directrice Marketing"
               },
               {
-                text: "Service impeccable, suivi rigoureux et équipe à l'écoute. Je recommande vivement AutoVente.",
+                text: "Service impeccable, suivi rigoureux et équipe à l'écoute. Je recommande vivement DriveMarket.",
                 author: "Pierre D.",
                 role: "Architecte"
               }
@@ -253,7 +253,7 @@ const HomePage = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <Mail className="h-6 w-6 text-gray-600" />
-                  <p className="text-gray-600">contact@autovente.fr</p>
+                  <p className="text-gray-600">contact@DriveMarket.fr</p>
                 </div>
               </div>
               <div className="mt-8">
