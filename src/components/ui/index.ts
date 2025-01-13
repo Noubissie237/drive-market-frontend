@@ -6,6 +6,7 @@ export { Input } from "./input";
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card";
 export { Badge, badgeVariants } from "./badge";
 export { Separator } from "./separator.tsx";
+export { Checkbox } from "./checkbox.tsx";
 export {
   Select,
   SelectTrigger,

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 
 import { Vehicle } from '../../types/vehicle';
 import { Button } from '../../components/ui/button';
-import { PlusIcon, ArrowLeftIcon } from 'lucide-react';
-import { VehicleForm } from '../../components/vehicleAdmin/vehicleForm';
+import {  ArrowLeftIcon } from 'lucide-react';
 import { VehicleList } from '../../components/vehicleAdmin/vehicleList';
 
 export const VehiclesAdminPage: React.FC = () => {
@@ -37,13 +36,6 @@ export const VehiclesAdminPage: React.FC = () => {
         <h1 className="text-2xl font-bold mb-6">
           {editingVehicle ? 'Modifier un véhicule' : 'Ajouter un véhicule'}
         </h1>
-        <VehicleForm
-          initialData={editingVehicle || undefined}
-          onSubmit={async (data) => {
-            // Implémentez la logique de soumission
-            console.log(data);
-          }}
-        />
       </div>
     );
   }

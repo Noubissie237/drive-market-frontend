@@ -143,7 +143,7 @@ const CatalogPage = () => {
                 )}
 
                 <div className="flex items-center justify-between mt-4">
-                  <span className="text-2xl font-bold">
+                  <span className="text-xl font-bold">
                     {vehicle.price.toLocaleString()} XAF
                   </span>
                   <div className="flex gap-2">
