@@ -9,18 +9,20 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     ({ className, onValueChange, defaultValue, children, ...props }, ref) => {
         return (
-            <select
-                ref={ref}
-                className={cn(
-                    "flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                    className
-                )}
-                onChange={(e) => onValueChange?.(e.target.value)}
-                defaultValue={defaultValue}
-                {...props}
-            >
-                {children}
-            </select>
+            <div className="relative">
+                <select
+                    ref={ref}
+                    className={cn(
+                        "flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        className
+                    )}
+                    onChange={(e) => onValueChange?.(e.target.value)}
+                    defaultValue={defaultValue}
+                    {...props}
+                >
+                    {children}
+                </select>
+            </div>
         );
     }
 );
@@ -63,7 +65,7 @@ SelectValue.displayName = "SelectValue";
 const SelectContent = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
     <div
         ref={ref}
         className={cn(
@@ -71,31 +73,34 @@ const SelectContent = React.forwardRef<
             className
         )}
         {...props}
-    />
+    >
+        {children}
+    </div>
 ));
 SelectContent.displayName = "SelectContent";
 
-interface SelectItemProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SelectItemProps extends React.OptionHTMLAttributes<HTMLOptionElement> {
     value: string;
-  }
-  
-  const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+}
+
+const SelectItem = React.forwardRef<HTMLOptionElement, SelectItemProps>(
     ({ className, value, children, ...props }, ref) => {
-      return (
-        <div
-          ref={ref}
-          className={cn(
-            "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-            className
-          )}
-          {...props}
-        >
-          {children}
-        </div>
-      );
+        return (
+            <option
+                ref={ref}
+                className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                    className
+                )}
+                value={value}
+                {...props}
+            >
+                {children}
+            </option>
+        );
     }
-  );
-  SelectItem.displayName = "SelectItem";
+);
+SelectItem.displayName = "SelectItem";
 
 export {
     Select,

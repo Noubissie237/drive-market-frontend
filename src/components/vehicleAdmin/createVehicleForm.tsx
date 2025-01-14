@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { gql } from '@apollo/client';
 import { ImageIcon } from 'lucide-react';
 import { ADD_VEHICLE } from '../../api/vehicleApi';
 import {
@@ -12,10 +11,7 @@ import {
 } from '../ui/dialog';
 import {
   Select,
-  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from '../ui/select';
 import {
   Form,
@@ -53,10 +49,11 @@ const formSchema = z.object({
   specifications: z.string().min(10, 'Les spécifications doivent contenir au moins 10 caractères'),
   status: z.enum(['AVAILABLE', 'LOW_STOCK', 'OUT_OF_STOCK', 'CLEARANCE']),
   images: z.array(z.object({
-    url: z.string().url('URL invalide'),
-    caption: z.string().optional(),
+    url: z.string().min(1, 'L\'image est requise'),  // URL ne peut pas être vide
+    caption: z.string().min(1, 'La légende est requise'), // Caption est maintenant requis
     order: z.number()
-  })),
+  })).min(1, 'Au moins une image est requise'),  // Au moins une image est requise
+
   options: z.array(z.object({
     name: z.string().min(1, 'Le nom est requis'),
     description: z.string().optional(),
@@ -67,6 +64,7 @@ const formSchema = z.object({
   }))
 });
 
+
 type FormValues = z.infer<typeof formSchema>;
 
 interface CreateVehicleFormProps {
@@ -76,22 +74,12 @@ interface CreateVehicleFormProps {
 }
 
 
-const UPLOAD_IMAGE = gql`
-  mutation UploadImage($file: Upload!) {
-    uploadImage(file: $file) {
-      url
-    }
-  }
-`;
-
-
 export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
   isOpen,
   onClose,
   onSuccess
 }) => {
-  const [createVehicle, { loading }] = useMutation(ADD_VEHICLE);
-  const [uploadImage] = useMutation(UPLOAD_IMAGE);
+  const [AddVehicle, { loading }] = useMutation(ADD_VEHICLE);
   const [previews, setPreviews] = useState<{ [key: number]: string }>({});
 
   const form = useForm<FormValues>({
@@ -111,53 +99,109 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await createVehicle({
+      // Log des valeurs soumises
+      console.log('Valeurs soumises:', values);
+
+      const response = await AddVehicle({
         variables: {
           type: values.type,
           propulsion: values.propulsion,
           name: values.name,
-          price: parseFloat(values.price), // Convertir en Float
-          stock: parseInt(values.stock), // Convertir en Int
+          price: parseFloat(values.price),
+          stock: parseInt(values.stock),
           specifications: values.specifications,
-          status: values.status,
-          images: values.images, // Déjà au bon format
+          images: values.images.map(img => ({
+            url: img.url,
+            caption: img.caption || '',
+            order: img.order
+          })),
           options: values.options.map(opt => ({
-            ...opt,
-            price: parseFloat(opt.price), // Convertir en Float
-            incompatibleOptions: opt.incompatibleOptions || [] // Assurer que c'est un tableau
+            name: opt.name,
+            description: opt.description || '',
+            price: parseFloat(opt.price),
+            incompatibleOptions: []
           }))
         }
       });
 
-      // Réinitialiser le formulaire après la soumission
-      form.reset();
-      onSuccess?.(); // Appeler la fonction de succès si elle existe
-      onClose(); // Fermer le formulaire
+      if (response.data) {
+        console.log('Véhicule créé avec succès:', response.data);
+        form.reset();
+        onSuccess?.();
+        onClose();
+      }
     } catch (error) {
-      console.error('Erreur lors de la création du véhicule:', error);
+      // Log détaillé des erreurs
+      if (error instanceof Error) {
+        console.error('Erreur lors de la création du véhicule:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+
+      // Log des erreurs de validation du formulaire
+      const formErrors = form.formState.errors;
+      if (Object.keys(formErrors).length > 0) {
+        console.error('Erreurs de validation du formulaire:', formErrors);
+      }
+
+      // Vous pourriez également ajouter ici une notification pour l'utilisateur
     }
   };
+
+  const saveImageLocally = async (file: File): Promise<string> => {
+    try {
+      // Créer un nom de fichier unique
+      const timestamp = new Date().getTime();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const extension = file.name.split('.').pop();
+      const filename = `${timestamp}-${randomString}.${extension}`;
+
+      // Créer un FormData pour envoyer le fichier
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', filename);
+
+      // Envoyer le fichier à votre endpoint backend
+      const response = await fetch('http://localhost:8079/SERVICE-VEHICLE/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur lors de l'upload de l'image: ${await response.text()}`);
+      }
+
+      const result = await response.json();
+
+      return result.url || `/img/vehicles/${filename}`;
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de l\'image:', error);
+      throw error;
+    }
+  };
+
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Créer une URL de prévisualisation
-    const previewUrl = URL.createObjectURL(file);
-    setPreviews(prev => ({ ...prev, [index]: previewUrl }));
-
     try {
-      // Upload du fichier
-      const { data } = await uploadImage({
-        variables: { file },
-      });
+      // Créer une URL de prévisualisation temporaire
+      const previewUrl = URL.createObjectURL(file);
+      setPreviews(prev => ({ ...prev, [index]: previewUrl }));
 
-      // Mettre à jour le champ url avec l'URL retournée par le serveur
+      // Sauvegarder l'image localement et obtenir l'URL
+      const localUrl = await saveImageLocally(file);
+      console.log("URL ----------",localUrl);
+
+      // Mettre à jour le champ URL dans le formulaire
       const currentImages = form.getValues('images');
-      currentImages[index].url = data.uploadImage.url;
+      currentImages[index].url = localUrl;
       form.setValue('images', currentImages);
     } catch (error) {
-      console.error('Erreur lors de l\'upload:', error);
+      console.error('Erreur lors du téléchargement:', error);
       // Nettoyer la prévisualisation en cas d'erreur
       setPreviews(prev => {
         const newPreviews = { ...prev };
@@ -166,6 +210,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
       });
     }
   };
+
 
 
   const imagesFields = form.watch('images');
@@ -228,99 +273,89 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+        aria-describedby="dialog-description"
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Ajouter un nouveau véhicule</DialogTitle>
         </DialogHeader>
+        <p id="dialog-description" className="sr-only">
+          Formulaire pour ajouter un nouveau véhicule.
+        </p>
 
-        <Form form={form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Informations de base */}
-              <Card className="col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Informations générales</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
+        <Form form={form} onSubmit={onSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Informations de base */}
+            <Card className="col-span-2">
+              <CardHeader>
+                <CardTitle className="text-lg">Informations générales</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem name="name">
+                      <FormLabel>Nom du véhicule</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ex: Toyota Corolla 2024" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="type"
                     render={({ field }) => (
-                      <FormItem name=''>
-                        <FormLabel>Nom du véhicule</FormLabel>
+                      <FormItem name="type">
+                        <FormLabel>Type</FormLabel>
                         <FormControl>
-                          <Input placeholder="ex: Toyota Corolla 2024" {...field} />
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectItem value="CAR">Voiture</SelectItem>
+                            <SelectItem value="SCOOTER">Scooter</SelectItem>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem name=''>
-                          <FormLabel>Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner le type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="CAR">Voiture</SelectItem>
-                              <SelectItem value="SCOOTER">Scooter</SelectItem>
-                            </SelectContent>
+                  <FormField
+                    control={form.control}
+                    name="propulsion"
+                    render={({ field }) => (
+                      <FormItem name="propulsion">
+                        <FormLabel>Propulsion</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectItem value="ELECTRIC">Électrique</SelectItem>
+                            <SelectItem value="ESSENCE">Essence</SelectItem>
                           </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                    <FormField
-                      control={form.control}
-                      name="propulsion"
-                      render={({ field }) => (
-                        <FormItem name=''>
-                          <FormLabel>Propulsion</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Type de propulsion" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="ELECTRIC">Électrique</SelectItem>
-                              <SelectItem value="ESSENCE">Essence</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Prix et Stock */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Prix et Stock</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            {/* Prix et Stock */}
+            <Card className='col-span-2'>
+              <CardHeader>
+                <CardTitle className="text-lg">Prix et Stock</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="price"
                     render={({ field }) => (
-                      <FormItem name=''>
+                      <FormItem name='price'>
                         <FormLabel>Prix (XAF)</FormLabel>
                         <FormControl>
                           <Input
@@ -338,7 +373,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
                     control={form.control}
                     name="stock"
                     render={({ field }) => (
-                      <FormItem name=''>
+                      <FormItem name='stock'>
                         <FormLabel>Stock disponible</FormLabel>
                         <FormControl>
                           <Input
@@ -351,250 +386,222 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
                       </FormItem>
                     )}
                   />
-                </CardContent>
-              </Card>
-
-              {/* Statut */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Statut</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem name=''>
-
-                        <FormLabel>État du véhicule</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner le statut" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="AVAILABLE">Disponible</SelectItem>
-                            <SelectItem value="LOW_STOCK">Stock faible</SelectItem>
-                            <SelectItem value="OUT_OF_STOCK">Rupture de stock</SelectItem>
-                            <SelectItem value="CLEARANCE">Liquidation</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Spécifications */}
-              <Card className="col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Spécifications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name="specifications"
-                    render={({ field }) => (
-                      <FormItem name=''>
-                        <FormLabel>Caractéristiques techniques</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Décrivez les spécifications du véhicule..."
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
 
-              {/* Section Images */}
-              <Card className="col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">Images</CardTitle>
-                  <Button type="button" variant="outline" size="sm" onClick={addImage}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une image
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {imagesFields.map((_, index) => (
-                    <div key={index} className="flex items-start space-x-4 border p-4 rounded-lg">
-                      <div className="flex-1 space-y-4">
-                        <div className="flex items-center space-x-4">
-                          {/* Zone de prévisualisation ou upload */}
-                          <div className="relative w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden">
-                            {previews[index] ? (
-                              <img
-                                src={previews[index]}
-                                alt="Prévisualisation"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="text-center">
-                                <ImageIcon className="mx-auto h-8 w-8 text-gray-400" />
-                                <span className="text-sm text-gray-500">Aucune image</span>
-                              </div>
+            {/* Spécifications */}
+            <Card className="col-span-2">
+              <CardHeader>
+                <CardTitle className="text-lg">Spécifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="specifications"
+                  render={({ field }) => (
+                    <FormItem name='specifications'>
+                      <FormLabel>Caractéristiques techniques</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Décrivez les spécifications du véhicule..."
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+
+            {/* Section Images */}
+            <Card className="col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg">Images</CardTitle>
+                <Button type="button" variant="outline" size="sm" onClick={addImage}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une image
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {imagesFields.length === 0 && (
+                  <div className="text-red-500 text-sm">Au moins une image est requise</div>
+                )}
+                {imagesFields.map((field, index) => (
+                  <div key={index} className="flex items-start space-x-4 border p-4 rounded-lg">
+                    <div className="flex-1 space-y-4">
+                      <div className="flex items-center space-x-4">
+                        {/* Zone de prévisualisation ou upload */}
+                        <div className="relative w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden">
+                          <FormField
+                            control={form.control}
+                            name={`images.${index}.url`}
+                            render={({ field: urlField }) => (
+                              <FormItem name={`images.${index}.url`} className="w-full h-full">
+                                {previews[index] ? (
+                                  <img
+                                    src={previews[index]}
+                                    alt="Prévisualisation"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="text-center">
+                                    <ImageIcon className="mx-auto h-8 w-8 text-gray-400" />
+                                    <span className="text-sm text-gray-500">Aucune image</span>
+                                  </div>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  onChange={(e) => handleFileChange(e, index)}
+                                />
+                                <FormMessage />
+                              </FormItem>
                             )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              onChange={(e) => handleFileChange(e, index)}
-                            />
-                          </div>
+                          />
+                        </div>
 
-                          {/* Légende */}
-                          <div className="flex-1">
-                            <FormField
-                              control={form.control}
-                              name={`images.${index}.caption`}
-                              render={({ field }) => (
-                                <FormItem name=''>
-                                  <FormLabel>Légende</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} placeholder="Description de l'image..." />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                        {/* Légende */}
+                        <div className="flex-1">
+                          <FormField
+                            control={form.control}
+                            name={`images.${index}.caption`}
+                            render={({ field }) => (
+                              <FormItem name={`images.${index}.caption`}>
+                                <FormLabel>Légende<span className="text-red-500 ml-1">*</span></FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Description de l'image..." />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                       </div>
-
-                      {/* Boutons de contrôle */}
-                      <div className="flex flex-col space-y-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeImage(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveImage(index, 'up')}
-                          disabled={index === 0}
-                        >
-                          <MoveUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveImage(index, 'down')}
-                          disabled={index === imagesFields.length - 1}
-                        >
-                          <MoveDown className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
 
-              {/* Section Options */}
-              <Card className="col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">Options</CardTitle>
-                  <Button type="button" variant="outline" size="sm" onClick={addOption}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une option
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {optionsFields.map((_, index) => (
-                    <div key={index} className="flex items-start space-x-4 border p-4 rounded-lg">
-                      <div className="flex-1 space-y-4">
-                        <FormField
-                          control={form.control}
-                          name={`options.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem name=''>
-                              <FormLabel>Nom de l'option</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="ex: Climatisation" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`options.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem name=''>
-                              <FormLabel>Description</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} placeholder="Description de l'option..." />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`options.${index}.price`}
-                          render={({ field }) => (
-                            <FormItem name=''>
-                              <FormLabel>Prix (XAF)</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="number" placeholder="ex: 150000" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                    {/* Boutons de contrôle */}
+                    <div className="flex flex-col space-y-2">
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeOption(index)}
+                        onClick={() => removeImage(index)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveImage(index, 'up')}
+                        disabled={index === 0}
+                      >
+                        <MoveUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveImage(index, 'down')}
+                        disabled={index === imagesFields.length - 1}
+                      >
+                        <MoveDown className="h-4 w-4" />
+                      </Button>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-            </div>
+            {/* Section Options */}
+            <Card className="col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg">Options</CardTitle>
+                <Button type="button" variant="outline" size="sm" onClick={addOption}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une option
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {optionsFields.map((_, index) => (
+                  <div key={index} className="flex items-start space-x-4 border p-4 rounded-lg">
+                    <div className="flex-1 space-y-4">
+                      <FormField
+                        control={form.control}
+                        name={`options.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem name={`options.${index}.name`}>
+                            <FormLabel>Nom de l'option</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="ex: Climatisation" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`options.${index}.description`}
+                        render={({ field }) => (
+                          <FormItem name={`options.${index}.description`}>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} placeholder="Description de l'option..." />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`options.${index}.price`}
+                        render={({ field }) => (
+                          <FormItem name={`options.${index}.price`}>
+                            <FormLabel>Prix (XAF)</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="number" placeholder="ex: 150000" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeOption(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Annuler
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Création en cours...
-                  </>
-                ) : (
-                  'Créer le véhicule'
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              Annuler
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Création en cours...
+                </>
+              ) : (
+                'Créer le véhicule'
+              )}
+            </Button>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

@@ -61,7 +61,7 @@ const FormItem = React.forwardRef<HTMLDivElement, FormItemProps>(
 FormItem.displayName = "FormItem";
 
 const FormLabel = React.forwardRef<
-    HTMLLabelElement, 
+    HTMLLabelElement,
     React.HTMLAttributes<HTMLLabelElement>
 >(({ className, children, ...props }, ref) => {
     return (
@@ -112,15 +112,15 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = "FormMessage";
 
-export { 
-    Form, 
-    FormField, 
-    FormItem, 
-    FormLabel, 
-    FormControl, 
+export {
+    Form,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
     FormMessage,
     FormItemContext,
     type FormItemProps,
     type FormFieldProps,
-    type FormProps 
+    type FormProps
 };

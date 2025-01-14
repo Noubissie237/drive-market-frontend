@@ -9,14 +9,16 @@ import {
   TableRow,
   TableCell,
   Button,
-  Alert,
-  AlertDescription,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Checkbox
+  Checkbox,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader
 } from '../ui';
 import {
   PencilIcon,
@@ -118,13 +120,34 @@ export const VehicleList: React.FC = () => {
     </div>
   );
 
-  if (error) return (
-    <Alert variant="destructive" className="m-4">
-      <AlertDescription>
-        Une erreur est survenue lors du chargement des véhicules : {error.message}
-      </AlertDescription>
-    </Alert>
-  );
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full">
+              <span className="text-red-600">⚠️</span>
+            </div>
+            <h2 className="text-xl font-semibold text-center">Une erreur est survenue</h2>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 text-center">
+              Impossible de charger les véhicules. Veuillez réessayer plus tard.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+              variant="destructive"
+            >
+              Réessayer
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-[1400px] mx-auto">
