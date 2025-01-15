@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingCart, User, Plus, LogOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,6 +12,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const cartRef = useRef<HTMLDivElement>(null);
   const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const { isAuthenticated, logout } = useAuth(); // Récupère l'état d'authentification et la méthode logout
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -32,6 +34,11 @@ const Navbar = () => {
     { name: 'À propos', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
+
+  const handleLogout = () => {
+    logout(); // Déconnecte l'utilisateur
+    navigate('/'); // Redirige vers la page d'accueil
+  };
 
   return (
     <nav className="bg-white shadow-md">
@@ -152,11 +159,19 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-            <Link to="/login">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
+
+            {/* Affiche LogOut si l'utilisateur est connecté, sinon affiche User */}
+            {isAuthenticated ? (
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5 text" />
               </Button>
-            </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -207,11 +222,18 @@ const Navbar = () => {
                     </span>
                   )}
                 </Button>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
+                {/* Affiche LogOut si l'utilisateur est connecté, sinon affiche User */}
+                {isAuthenticated ? (
+                  <Button variant="ghost" size="icon" onClick={handleLogout}>
+                    <LogOut className="h-5 w-5" />
                   </Button>
-                </Link>
+                ) : (
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="ghost" size="icon">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
