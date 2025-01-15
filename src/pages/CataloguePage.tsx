@@ -8,13 +8,37 @@ import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
 import { useCart } from '../components/context/CartContext';
 import { Vehicle } from '../types/vehicle';
+import { useAuth } from '../components/context/AuthContext';
+import Swal from 'sweetalert2';
 
 
 const CatalogPage = () => {
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const { addToCart } = useCart();
+
+  const handleAddToCart = (vehicle: Vehicle) => {
+    if (!isAuthenticated) {
+      Swal.fire({
+        title: 'Connexion requise',
+        text: 'Vous devez vous connecter pour ajouter un véhicule au panier.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Se connecter',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#0F172A',
+        cancelButtonColor: '#d33',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+      return;
+    }
+    addToCart(vehicle);
+  };
 
   const { loading, error, data } = useQuery(GET_VEHICLES);
 
@@ -141,7 +165,7 @@ const CatalogPage = () => {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => addToCart(vehicle)}
+                      onClick={() => handleAddToCart(vehicle)}
                       disabled={vehicle.stock === 0}
                       className="flex items-center gap-2"
                     >

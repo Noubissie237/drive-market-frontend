@@ -61,7 +61,7 @@ const NotFoundPage = () => {
                 </Button>
 
                 <Button
-                  onClick={() => navigate('/search')}
+                  onClick={() => navigate('/catalogue')}
                   className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950
                            text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 
                            transition-all duration-200 flex items-center justify-center gap-2 px-6 py-3"
@@ -70,7 +70,7 @@ const NotFoundPage = () => {
                   Rechercher un véhicule
                 </Button>
 
-                <Button
+                <Button 
                   onClick={() => navigate(-1)}
                   variant="outline"
                   className="border-2 hover:bg-slate-50 transform hover:-translate-y-0.5 
