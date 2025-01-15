@@ -1,23 +1,81 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
-  CreditCard, Lock, Check, ChevronRight, PlayIcon, 
+  CreditCard, Lock, Check, ChevronRight, PlayIcon,
   AppleIcon, ShieldCheck, Clock, ArrowLeft, Building,
-  MapPin, Ban
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../components/context/CartContext';
 
 const PaymentPage = () => {
+  const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [wantCredit, setWantCredit] = useState(false);
+  const [creditDuration, setCreditDuration] = useState<number>(72); // Durée du crédit en mois
+  const [initialDeposit, setInitialDeposit] = useState<number>(0); // Apport initial
+  const [depositError, setDepositError] = useState<string | null>(null); // Message d'erreur pour l'apport initial
+  // Utilise le contexte du panier
+  const { cart, getTotalPrice } = useCart();
+
+  // Calcul des totaux dynamiques
+  const subtotal = getTotalPrice();
+  const tax = subtotal * 0.03; // Exemple de TVA à 3%
+  const shipping = 0; // Livraison gratuite
+  const total = subtotal + tax + shipping;
+
+  // Taux d'intérêt en fonction de la durée
+  const interestRates: { [key: number]: number } = {
+    48: 3.9, // 3.9% APR pour 48 mois
+    60: 4.2, // 4.2% APR pour 60 mois
+    72: 4.9, // 4.9% APR pour 72 mois
+  };
+
+  // Calcul du paiement mensuel
+  const calculateMonthlyPayment = (total: number, duration: number, interestRate: number) => {
+    const monthlyInterestRate = interestRate / 100 / 12;
+    const numerator = monthlyInterestRate * Math.pow(1 + monthlyInterestRate, duration);
+    const denominator = Math.pow(1 + monthlyInterestRate, duration) - 1;
+    return ((total - initialDeposit) * (numerator / denominator)).toFixed(2);
+  };
+
+  const monthlyPayment = calculateMonthlyPayment(total, creditDuration, interestRates[creditDuration]);
+
+  // Validation de l'apport initial
+  const validateInitialDeposit = (value: number) => {
+    if (value < parseFloat(monthlyPayment)) {
+      setDepositError("L'apport initial ne peut pas être inférieur au montant du paiement mensuel.");
+      return false;
+    }
+    setDepositError(null);
+    return true;
+  };
+
+  const handleDepositChange = (value: string) => {
+    // Convertir la valeur en nombre
+    const numericValue = parseFloat(value);
+
+    // Vérifier si la valeur est un nombre valide
+    if (isNaN(numericValue)) {
+      // Si la valeur n'est pas valide, définir l'apport initial à 0
+      setInitialDeposit(0);
+      setDepositError("Veuillez saisir un montant valide.");
+    } else {
+      // Si la valeur est valide, mettre à jour l'apport initial
+      setInitialDeposit(numericValue);
+      validateInitialDeposit(numericValue); // Valider l'apport initial
+    }
+  };
+
 
   const orderSummary = {
-    subtotal: 53990,
-    tax: 1620,
-    shipping: 0,
-    total: 55610,
-    monthlyPayment: 799 // Pour 72 mois à 4.9% APR
+    subtotal,
+    tax,
+    shipping,
+    total,
+    monthlyPayment: parseFloat(monthlyPayment), // Convertir en nombre
+    interestRate: interestRates[creditDuration], // Taux d'intérêt actuel
   };
 
   return (
@@ -25,7 +83,9 @@ const PaymentPage = () => {
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <button className="flex items-center text-sm text-gray-600 hover:text-black transition-colors mb-6">
+          <button className="flex items-center text-sm text-gray-600 hover:text-black transition-colors mb-6"
+            onClick={() => navigate('/panier')}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour au panier
           </button>
@@ -113,7 +173,7 @@ const PaymentPage = () => {
                 <h2 className="text-xl font-light mb-6">Mode de financement</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer hover:border-gray-300"
-                       onClick={() => setWantCredit(false)}>
+                    onClick={() => setWantCredit(false)}>
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-5 w-5" />
                       <div>
@@ -123,14 +183,14 @@ const PaymentPage = () => {
                     </div>
                     <div className={`h-4 w-4 rounded-full border-2 ${!wantCredit ? 'bg-black border-black' : 'border-gray-300'}`} />
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer hover:border-gray-300"
-                       onClick={() => setWantCredit(true)}>
+                    onClick={() => setWantCredit(true)}>
                     <div className="flex items-center gap-3">
                       <Check className="h-5 w-5" />
                       <div>
                         <p className="font-medium">Financement</p>
-                        <p className="text-sm text-gray-600">À partir de {orderSummary.monthlyPayment}XAF/mois sur 72 mois</p>
+                        <p className="text-sm text-gray-600">À partir de {orderSummary.monthlyPayment} XAF/mois</p>
                       </div>
                     </div>
                     <div className={`h-4 w-4 rounded-full border-2 ${wantCredit ? 'bg-black border-black' : 'border-gray-300'}`} />
@@ -144,7 +204,11 @@ const PaymentPage = () => {
                           <label className="block text-xs font-medium mb-2">
                             Durée du crédit
                           </label>
-                          <select className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm">
+                          <select
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
+                            value={creditDuration}
+                            onChange={(e) => setCreditDuration(parseInt(e.target.value))}
+                          >
                             <option value="48">48 mois</option>
                             <option value="60">60 mois</option>
                             <option value="72">72 mois</option>
@@ -152,17 +216,23 @@ const PaymentPage = () => {
                         </div>
                         <div>
                           <label className="block text-xs font-medium mb-2">
-                            Apport initial
+                            Apport initial (XAF)
                           </label>
                           <input
-                            type="text"
+                            disabled
+                            type="number"
                             className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                            placeholder="10000XAF"
+                            placeholder="10000 XAF"
+                            value={orderSummary.monthlyPayment}
+                            onChange={(e) => handleDepositChange((e.target.value))}
                           />
+                          {depositError && (
+                            <p className="text-xs text-red-500 mt-2">{depositError}</p>
+                          )}
                         </div>
                       </div>
                       <p className="text-sm text-gray-600">
-                        * Taux d'intérêt à partir de 4.9% APR selon profil
+                        * Taux d'intérêt à partir de {orderSummary.interestRate}% APR selon profil
                       </p>
                     </div>
                   )}
@@ -174,7 +244,7 @@ const PaymentPage = () => {
             <Card className="overflow-hidden bg-white/90 backdrop-blur-lg">
               <CardContent className="p-6">
                 <h2 className="text-xl font-light mb-6">Méthode de paiement</h2>
-                
+
                 <div className="space-y-4">
                   {/* Options de paiement */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -187,8 +257,8 @@ const PaymentPage = () => {
                         key={id}
                         onClick={() => setPaymentMethod(id)}
                         className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-3
-                          ${paymentMethod === id 
-                            ? 'border-black bg-black text-white shadow-lg' 
+              ${paymentMethod === id
+                            ? 'border-black bg-black text-white shadow-lg'
                             : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
                           }`}
                       >
@@ -272,20 +342,29 @@ const PaymentPage = () => {
                 <h2 className="text-xl font-light mb-6">Résumé de la commande</h2>
 
                 <div className="space-y-4 mb-6">
-                  {/* Produit */}
-                  <div className="flex gap-4 pb-4 border-b border-gray-100">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                      <img 
-                        src="https://b1672279.smushcdn.com/1672279/wp-content/uploads/2019/05/location-citadine-type-renault-clio-v-2-13.png?lossy=2&strip=1&webp=1" 
-                        alt="Vehicle" 
-                        className="w-full h-full object-cover"
-                      />
+                  {/* Liste des produits */}
+                  {cart.map((item) => (
+                    <div key={item.vehicle.id} className="flex gap-4 pb-4 border-b border-gray-100">
+                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={item.vehicle.images[0].url}
+                          alt={item.vehicle.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">{item.vehicle.name}</h3>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Quantité : {item.quantity}
+                        </p>
+                        {item.vehicle.selectedOptions && (
+                          <div className="text-xs text-gray-600">
+                            Options : {item.vehicle.selectedOptions.map(option => option.name).join(', ')}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium">Tesla Model 3</h3>
-                      <p className="text-xs text-gray-600 mt-1">Performance • 2023</p>
-                    </div>
-                  </div>
+                  ))}
 
                   {/* Détails prix */}
                   <div className="space-y-3 text-sm">
@@ -303,13 +382,15 @@ const PaymentPage = () => {
                     </div>
                   </div>
 
-{/* Total */}
-<div className="flex justify-between pt-4 border-t border-gray-100">
+                  {/* Total */}
+                  <div className="flex justify-between pt-4 border-t border-gray-100">
                     <span className="font-medium">Total</span>
                     {wantCredit ? (
                       <div className="text-right">
                         <div className="text-lg font-medium">{orderSummary.monthlyPayment}XAF/mois</div>
-                        <div className="text-xs text-gray-600">sur 72 mois • 4.9% APR</div>
+                        <div className="text-xs text-gray-600">
+                          sur {creditDuration} mois • {orderSummary.interestRate}% APR
+                        </div>
                       </div>
                     ) : (
                       <span className="text-lg font-medium">
@@ -320,7 +401,7 @@ const PaymentPage = () => {
                 </div>
 
                 {/* Bouton paiement */}
-                <Button 
+                <Button
                   className="w-full bg-black hover:bg-gray-800 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
                   onClick={() => setIsProcessing(true)}
                 >
