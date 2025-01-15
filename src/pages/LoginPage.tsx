@@ -2,18 +2,57 @@ import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Car, Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { useAuth } from '../components/context/AuthContext';
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logique de connexion ici
+
+    try {
+      const response = await axios.post('/SERVICE-AUTH/auth/login', {
+        email,
+        password,
+      });
+
+      // Récupère le token JWT depuis la réponse
+      const token = response.data;
+
+      login(token);
+
+      if (rememberMe) {
+        localStorage.setItem('token', token);
+      } else {
+        sessionStorage.setItem('token', token);
+      }
+
+      // Affiche une notification de succès
+      Swal.fire({
+        title: 'Connexion réussie !',
+        text: 'Vous êtes maintenant connecté.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+      });
+
+      navigate('/');
+    } catch (error) {
+      Swal.fire({
+        title: 'Erreur de connexion',
+        text: 'Email ou mot de passe incorrect.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      console.error('Erreur lors de la connexion :', error);
+    }
   };
 
   return (
@@ -37,8 +76,8 @@ const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div className="space-y-2">
-              <label 
-                htmlFor="email" 
+              <label
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
                 Adresse email
@@ -63,8 +102,8 @@ const LoginPage: React.FC = () => {
 
             {/* Mot de passe */}
             <div className="space-y-2">
-              <label 
-                htmlFor="password" 
+              <label
+                htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
                 Mot de passe
@@ -107,15 +146,15 @@ const LoginPage: React.FC = () => {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded cursor-pointer"
                 />
-                <label 
-                  htmlFor="remember-me" 
+                <label
+                  htmlFor="remember-me"
                   className="ml-2 block text-sm text-gray-700 cursor-pointer"
                 >
                   Se souvenir de moi
                 </label>
               </div>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-sm font-medium text-black hover:underline"
               >
                 Mot de passe oublié ?
@@ -123,8 +162,8 @@ const LoginPage: React.FC = () => {
             </div>
 
             {/* Bouton de connexion */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-black hover:bg-gray-800"
             >
               Se connecter
@@ -134,8 +173,8 @@ const LoginPage: React.FC = () => {
             <div className="text-center text-sm">
               <span className="text-gray-600">Vous n'avez pas de compte ?</span>
               {' '}
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="font-medium text-black hover:underline"
               >
                 Créer un compte
@@ -143,7 +182,6 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
         </Card>
-
       </div>
     </div>
   );
