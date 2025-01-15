@@ -107,7 +107,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                      placeholder="John"
+                      placeholder="Wilfried"
                     />
                   </div>
                   <div>
@@ -117,7 +117,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                      placeholder="Doe"
+                      placeholder="Noubissie kamga"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -127,7 +127,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                      placeholder="123 rue de la Paix"
+                      placeholder="Obilli"
                     />
                   </div>
                   <div>
@@ -147,7 +147,7 @@ const PaymentPage = () => {
                     <input
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                      placeholder="75000"
+                      placeholder="23700"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -157,10 +157,16 @@ const PaymentPage = () => {
                     <select
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                     >
+                      <option value="CM">Cameroun</option>
+                      <option value="NI">Nigéria</option>
+                      <option value="CI">Côte d'ivoire</option>
+                      <option value="SN">Sénégal</option>
+                      <option value="GE">Allemagne</option>
                       <option value="FR">France</option>
-                      <option value="BE">Belgique</option>
-                      <option value="CH">Suisse</option>
-                      <option value="LU">Luxembourg</option>
+                      <option value="ES">Espagne</option>
+                      <option value="IT">Italie</option>
+                      <option value="CA">Canada</option>
+                      <option value="US">Etat Unis</option>
                     </select>
                   </div>
                 </div>
@@ -316,7 +322,7 @@ const PaymentPage = () => {
                           <input
                             type="text"
                             className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                            placeholder="John Doe"
+                            placeholder="Wilfried Noubissie kamga"
                           />
                         </div>
                       </div>
