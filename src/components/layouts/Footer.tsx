@@ -1,6 +1,24 @@
-// import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+  const navigate = useNavigate();
+
+  const handleFAQClick = () => {
+    navigate('/#faq');
+  };
+
+  const handleContactClick = () => {
+    navigate('/#contact');
+  };
+
+  const handleServiceClick = () => {
+    navigate('/#service');
+  };
+
+  const handlePromotionClick = () => {
+    navigate('/#promotion');
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -28,9 +46,26 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-4">Support</h3>
             <ul className="space-y-2">
-              <li><a href="/contact" className="text-gray-400 hover:text-white">Contact</a></li>
-              <li><a href="/faq" className="text-gray-400 hover:text-white">FAQ</a></li>
-              <li><a href="/assistance" className="text-gray-400 hover:text-white">Assistance</a></li>
+              <li>
+                <button onClick={handleContactClick} className="text-gray-400 hover:text-white">
+                  Contact
+                </button>
+              </li>
+              <li>
+                <button onClick={handleFAQClick} className="text-gray-400 hover:text-white">
+                  FAQ
+                </button>
+              </li>
+              <li>
+                <button onClick={handleServiceClick} className="text-gray-400 hover:text-white">
+                  Service
+                </button>
+              </li>
+              <li>
+                <button onClick={handlePromotionClick} className="text-gray-400 hover:text-white">
+                  Promotion
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -39,8 +74,8 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-400">
               <li>Email: contact@DriveMarket.com</li>
-              <li>Tél: +123 456 789</li>
-              <li>Adresse: 123 Rue du Commerce</li>
+              <li>Tél: +237 690 232 120</li>
+              <li>Adresse: Obili, Yaoundé - Cameroun</li>
             </ul>
           </div>
         </div>

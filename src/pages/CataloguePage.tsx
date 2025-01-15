@@ -99,27 +99,31 @@ const CatalogPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVehicles.map((vehicle: Vehicle) => {
           const stockStatus = getStockStatus(vehicle.stock);
-          
+
           return (
             <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="relative h-48 bg-gray-200">
-              <img
-                src={vehicle.images[0].url}
-                alt={vehicle.name}
-                className="w-full h-full object-cover"
-              />
-              <Badge 
-                variant={stockStatus.label === 'En stock' ? 'default' : 
-                        stockStatus.label === 'Stock limité' ? 'secondary' : 'destructive'}
-                className="absolute top-4 right-4"
-              >
-                {stockStatus.label}
-              </Badge>
-            </div>
+              <div className="relative h-48 bg-gray-200">
+                <img
+                  src={vehicle.images[0].url}
+                  alt={vehicle.name}
+                  className="w-full h-full object-cover"
+                />
+                <Badge
+                  variant={stockStatus.label === 'En stock' ? 'default' :
+                    stockStatus.label === 'Stock limité' ? 'secondary' : 'destructive'}
+                  className="absolute top-4 right-4"
+                >
+                  {stockStatus.label}
+                </Badge>
+              </div>
 
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-2">{vehicle.name}</h3>
-                <p className="text-gray-600 mb-4">{vehicle.specifications}</p>
+                <p className="text-gray-600 mb-4">
+                  {vehicle.specifications.length > 150
+                    ? `${vehicle.specifications.substring(0, 150)} ...`
+                    : vehicle.specifications}
+                </p>
 
                 {/* {vehicle.options.length > 0 && (
                   <div className="space-y-2 mb-4">
