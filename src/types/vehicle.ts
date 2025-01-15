@@ -3,6 +3,16 @@ export type VehicleStatus = 'AVAILABLE' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'CLEARA
 export type VehicleType = 'CAR' | 'MOTORCYCLE' | 'SCOOTER';
 export type PropulsionType = 'ELECTRIC' | 'GASOLINE' | 'HYBRID';
 
+enum VehiculeType {
+  CAR,
+  SCOOTER
+}
+
+enum PropulsionTyp {
+  CAR,
+  SCOOTER
+}
+
 // Interface principale pour un véhicule
 export interface Vehicle {
   id: string;
@@ -11,6 +21,8 @@ export interface Vehicle {
   stock: number;
   status: VehicleStatus;
   specifications: string;
+  type: VehiculeType;
+  propulsion: PropulsionTyp;
   images: VehicleImage[];
   options: VehicleOption[];
 }

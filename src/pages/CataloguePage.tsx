@@ -93,6 +93,15 @@ const CatalogPage = () => {
             <SlidersHorizontal className="h-4 w-4" />
             Filtres
           </Button>
+
+          <Button
+            onClick={() => navigate("/deep-search")}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Search className="h-4 w-4" />
+            Recherche avancée
+          </Button>
         </div>
       </div>
 
@@ -124,22 +133,6 @@ const CatalogPage = () => {
                     ? `${vehicle.specifications.substring(0, 150)} ...`
                     : vehicle.specifications}
                 </p>
-
-                {/* {vehicle.options.length > 0 && (
-                  <div className="space-y-2 mb-4">
-                    <p className="font-medium">Options disponibles :</p>
-                    <div className="flex flex-wrap gap-2">
-                      {vehicle.options.slice(0, 3).map((option) => (
-                        <Badge key={option.id} variant="outline">
-                          {option.name}
-                        </Badge>
-                      ))}
-                      {vehicle.options.length > 3 && (
-                        <Badge variant="outline">+{vehicle.options.length - 3}</Badge>
-                      )}
-                    </div>
-                  </div>
-                )} */}
 
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-xl font-bold">

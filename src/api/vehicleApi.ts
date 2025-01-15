@@ -1,5 +1,38 @@
 import { gql } from '@apollo/client';
 
+// Requête pour récupérer un véhicule précis
+export const GET_VEHICLE = gql`
+  query GetVehicle($id: ID!) {
+    vehicle(id: $id) {
+      id
+      name
+      price
+      type
+      propulsion
+      specifications
+      batteryCapacity
+      chargingTime
+      batteryRange
+      fuelCapacity
+      consumption
+      emissionClass
+      images {
+        url
+      }
+      options {
+        id
+        name
+        description
+        price
+        incompatibleOptions {
+          id
+        }
+      }
+    }
+  }
+`;
+
+
 // Requête pour récupérer tous les véhicules
 export const GET_VEHICLES = gql`
   query GetVehicles {
@@ -7,6 +40,8 @@ export const GET_VEHICLES = gql`
       id
       name
       price
+      type
+      propulsion
       stock
       status
       specifications

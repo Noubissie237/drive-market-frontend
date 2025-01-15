@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, Info, ShoppingCart } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
+import { useNavigate, useParams } from 'react-router-dom';
+// import { Vehicle, PropulsionType } from '../types/vehicle';
+import { useQuery } from '@apollo/client';
+import { GET_VEHICLE } from '../api/vehicleApi';
+import { useCart } from '../components/context/CartContext';
+import { VehicleImage, VehicleOption } from '../types/vehicle';
 
 interface Option {
   id: number;
   name: string;
   price: number;
-  description: string;
+  specifications: string;
   incompatibleWith?: number[];
 }
 
@@ -17,10 +23,9 @@ interface VehicleDetails {
   type: string;
   category: string;
   price: number;
-  description: string;
+  specifications: string;
   specs: {
     performance: { label: string; value: string }[];
-    dimensions: { label: string; value: string }[];
     features: string[];
   };
   images: string[];
@@ -28,66 +33,100 @@ interface VehicleDetails {
 }
 
 const VehicleDetailPage = () => {
+  const { addToCart } = useCart();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+  const { loading, error, data } = useQuery(GET_VEHICLE, {variables: {id: id}});
 
-  // Exemple de données détaillées d'un véhicule
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full">
+              <span className="text-red-600">⚠️</span>
+            </div>
+            <h2 className="text-xl font-semibold text-center">Une erreur est survenue</h2>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 text-center">
+              Impossible de charger les véhicules. Veuillez réessayer plus tard.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+              variant="destructive"
+            >
+              Réessayer
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   const vehicleDetails: VehicleDetails = {
-    id: 1,
-    name: "Tesla Model S",
-    type: "automobile",
-    category: "électrique",
-    price: 89990,
-    description: "La Tesla Model S redéfinit les performances d'une voiture électrique. Avec une autonomie exceptionnelle et des technologies de pointe, elle représente l'avenir de l'automobile.",
+    id: data.vehicle.id,
+    name: data.vehicle.name,
+    type: data.vehicle.type,
+    category: data.vehicle.propulsion,
+    price: data.vehicle.price,
+    specifications: data.vehicle.specifications,
     specs: {
       performance: [
-        { label: "Autonomie", value: "600 km" },
-        { label: "0-100 km/h", value: "3.2s" },
-        { label: "Vitesse max", value: "250 km/h" },
-        { label: "Puissance", value: "670 ch" }
-      ],
-      dimensions: [
-        { label: "Longueur", value: "4970 mm" },
-        { label: "Largeur", value: "1964 mm" },
-        { label: "Hauteur", value: "1445 mm" },
-        { label: "Poids", value: "2069 kg" }
+        ...(data.vehicle.batteryCapacity && data.vehicle.chargingTime && data.vehicle.batteryRange
+          ? [
+            { label: "Capacité de la batterie", value: `${data.vehicle.batteryCapacity} kWh` },
+            { label: "Temps de charge", value: `${data.vehicle.chargingTime} h` },
+            { label: "Autonomie", value: `${data.vehicle.batteryRange} km` },
+          ]
+          : [
+            { label: "Capacité du réservoir", value: `${data.vehicle.fuelCapacity} L` },
+            { label: "Consommation", value: `${data.vehicle.consumption} L/100 km` },
+            { label: "Norme d'émission", value: data.vehicle.emissionClass },
+          ])
       ],
       features: [
-        "Autopilot avancé",
-        "Écran tactile 17\"",
-        "Toit en verre panoramique",
-        "Système audio premium 22 haut-parleurs",
-        "Charge rapide",
-        "Climatisation tri-zone"
-      ]
+      
+        // Features spécifiques aux véhicules électriques
+        ...(data.vehicle.batteryCapacity && data.vehicle.chargingTime && data.vehicle.batteryRange
+          ? [
+              `Charge rapide (${data.vehicle.chargingTime} h)`,
+              `Autonomie de ${data.vehicle.batteryRange} km`,
+              `Capacité de la batterie ${data.vehicle.batteryCapacity} KWh`,
+            ]
+          : []),
+      
+        // Features spécifiques aux véhicules essence
+        ...(data.vehicle.fuelCapacity && data.vehicle.consumption && data.vehicle.emissionClass
+          ? [
+              `Réservoir de ${data.vehicle.fuelCapacity} L`,
+              `Consommation de ${data.vehicle.consumption} L/100 km`, 
+              `Norme d'émission ${data.vehicle.emissionClass}`,
+            ]
+          : []),
+      ],
     },
-    images: [
-      "https://b1672279.smushcdn.com/1672279/wp-content/uploads/2019/05/location-citadine-type-renault-clio-v-2-13.png?lossy=2&strip=1&webp=1",
-      "https://images.ad.fr/biblio_centrale/image/site/voiture.PNG",
-      "https://s3-eu-west-1.amazonaws.com/staticeu.izmocars.com/toolkit/commonassets/2024/24nissan/24nissanxtrailhevtekna4wdsu4bfr/24nissanxtrailhevtekna4wdsu4bfr_animations/colorpix/fr/640x480/nissan_24xtrailhevtekna4wdsu4bfr_noirintense_angular-front.webp"
-    ],
-    options: [
-      {
-        id: 1,
-        name: "Sièges Performance",
-        price: 2500,
-        description: "Sièges sport en cuir ventilés avec supports latéraux renforcés",
-        incompatibleWith: [2]
-      },
-      {
-        id: 2,
-        name: "Sièges Confort",
-        price: 2000,
-        description: "Sièges en cuir premium avec massage et ventilation",
-        incompatibleWith: [1]
-      },
-      {
-        id: 3,
-        name: "Pack Conduite Autonome",
-        price: 7500,
-        description: "Capacités de conduite autonome avancées avec navigation automatique"
-      }
-    ]
+    images: data.vehicle.images.map((image: VehicleImage) => image.url), 
+    options: data.vehicle.options.map((option: VehicleOption) => ({
+      id: option.id,
+      name: option.name,
+      price: option.price,
+      specifications: option.description,
+      incompatibleWith: option.incompatibleOptions.map((incompatible: { id: string; name: string }) => incompatible.id),
+    })),
   };
 
   const handleOptionSelect = (optionId: number) => {
@@ -116,7 +155,9 @@ const VehicleDetailPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Navigation */}
-      <Button variant="ghost" className="mb-6">
+      <Button variant="ghost" className="mb-6"
+      onClick={()=> navigate('/catalogue')}
+      >
         <ChevronLeft className="mr-2 h-4 w-4" />
         Retour au catalogue
       </Button>
@@ -174,28 +215,15 @@ const VehicleDetailPage = () => {
           <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm mb-4">
             {vehicleDetails.category}
           </span>
-          <p className="text-gray-600 mb-6">{vehicleDetails.description}</p>
+          <p className="text-gray-600 mb-6">{vehicleDetails.specifications}</p>
 
           {/* Spécifications */}
-          <div className="grid grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 gap-6 mb-8">
             <Card>
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-4">Performance</h3>
                 <div className="space-y-2">
                   {vehicleDetails.specs.performance.map((spec, index) => (
-                    <div key={index} className="flex justify-between">
-                      <span className="text-gray-600">{spec.label}</span>
-                      <span className="font-medium">{spec.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-lg font-semibold mb-4">Dimensions</h3>
-                <div className="space-y-2">
-                  {vehicleDetails.specs.dimensions.map((spec, index) => (
                     <div key={index} className="flex justify-between">
                       <span className="text-gray-600">{spec.label}</span>
                       <span className="font-medium">{spec.value}</span>
@@ -234,12 +262,12 @@ const VehicleDetailPage = () => {
                           )}
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {option.description}
+                          {option.specifications}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-medium">
-                          {option.price.toLocaleString()}XAF
+                          {option.price.toLocaleString()} XAF
                         </span>
                         <Button
                           variant={isSelected ? "default" : "outline"}
@@ -262,7 +290,7 @@ const VehicleDetailPage = () => {
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-600">Prix de base</span>
               <span className="font-medium">
-                {vehicleDetails.price.toLocaleString()}XAF
+                {vehicleDetails.price.toLocaleString()} XAF
               </span>
             </div>
             {selectedOptions.map(optionId => {
@@ -271,16 +299,18 @@ const VehicleDetailPage = () => {
                 <div key={option.id} className="flex items-center justify-between mb-4">
                   <span className="text-gray-600">{option.name}</span>
                   <span className="font-medium">
-                    {option.price.toLocaleString()}XAF
+                    {option.price.toLocaleString()} XAF
                   </span>
                 </div>
               ) : null;
             })}
             <div className="flex items-center justify-between mb-6 text-lg font-bold">
               <span>Prix total</span>
-              <span>{calculateTotalPrice().toLocaleString()}XAF</span>
+              <span>{calculateTotalPrice().toLocaleString()} XAF</span>
             </div>
-            <Button className="w-full" size="lg">
+            <Button className="w-full" size="lg"
+              onClick={() => addToCart}
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Ajouter au panier
             </Button>
@@ -321,7 +351,7 @@ export default VehicleDetailPage;
 //   id: number;
 //   name: string;
 //   price: number;
-//   description: string;
+//   specifications: string;
 //   incompatibleWith?: number[];
 // }
 
@@ -331,7 +361,7 @@ export default VehicleDetailPage;
 //   type: string;
 //   category: string;
 //   price: number;
-//   description: string;
+//   specifications: string;
 //   specs: {
 //     performance: { label: string; value: string }[];
 //     dimensions: { label: string; value: string }[];
@@ -351,7 +381,7 @@ export default VehicleDetailPage;
 //     type: "automobile",
 //     category: "essence",
 //     price: 45990,
-//     description: "La Peugeot 508 GT allie performance et élégance. Son moteur essence PureTech offre une conduite dynamique et réactive, tandis que son design sophistiqué attire tous les regards.",
+//     specifications: "La Peugeot 508 GT allie performance et élégance. Son moteur essence PureTech offre une conduite dynamique et réactive, tandis que son design sophistiqué attire tous les regards.",
 //     specs: {
 //       performance: [
 //         { label: "Moteur", value: "1.6L PureTech" },
@@ -384,21 +414,21 @@ export default VehicleDetailPage;
 //         id: 1,
 //         name: "Pack Sport",
 //         price: 3500,
-//         description: "Suspension sport, jantes 19\", étriers de frein rouges",
+//         specifications: "Suspension sport, jantes 19\", étriers de frein rouges",
 //         incompatibleWith: [2]
 //       },
 //       {
 //         id: 2,
 //         name: "Pack Confort",
 //         price: 2800,
-//         description: "Sièges chauffants massants, suspension confort, vitres surteintées",
+//         specifications: "Sièges chauffants massants, suspension confort, vitres surteintées",
 //         incompatibleWith: [1]
 //       },
 //       {
 //         id: 3,
 //         name: "Pack Night Vision",
 //         price: 1800,
-//         description: "Vision nocturne infrarouge avec détection de piétons"
+//         specifications: "Vision nocturne infrarouge avec détection de piétons"
 //       }
 //     ]
 //   };
@@ -486,7 +516,7 @@ export default VehicleDetailPage;
 //           <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm mb-4">
 //             {vehicleDetails.category}
 //           </span>
-//           <p className="text-gray-600 mb-6">{vehicleDetails.description}</p>
+//           <p className="text-gray-600 mb-6">{vehicleDetails.specifications}</p>
 
 //           {/* Spécifications */}
 //           <div className="grid grid-cols-2 gap-6 mb-8">
@@ -546,7 +576,7 @@ export default VehicleDetailPage;
 //                           )}
 //                         </div>
 //                         <p className="text-sm text-gray-600 mt-1">
-//                           {option.description}
+//                           {option.specifications}
 //                         </p>
 //                       </div>
 //                       <div className="flex items-center gap-4">
