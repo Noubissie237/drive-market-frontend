@@ -2,13 +2,13 @@ import React, { createContext, useContext, useState } from 'react';
 import { Vehicle } from '../../types/vehicle';
 
 interface CartItem {
-    vehicle: Vehicle;
+    vehicle: Vehicle & { selectedOptions?: Array<{ id: string; name: string; price: number }> };
     quantity: number;
 }
 
 interface CartContextType {
     cart: CartItem[];
-    addToCart: (vehicle: Vehicle) => void;
+    addToCart: (vehicle: Vehicle & { selectedOptions?: Array<{ id: string; name: string; price: number }> }) => void;
     removeFromCart: (vehicleId: string) => void;
     updateQuantity: (vehicleId: string, newQuantity: number) => void;
     getTotalPrice: () => number;
@@ -20,8 +20,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cart, setCart] = useState<CartItem[]>([]);
 
-    const addToCart = (vehicle: Vehicle) => {
-
+    const addToCart = (vehicle: Vehicle & { selectedOptions?: Array<{ id: string; name: string; price: number }> }) => {
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.vehicle.id === vehicle.id);
             if (existingItem) {
@@ -51,7 +50,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const getTotalPrice = () => {
-        return cart.reduce((total, item) => total + (item.vehicle.price * item.quantity), 0);
+        return cart.reduce((total, item) => {
+            // Prix de base du véhicule multiplié par la quantité
+            const vehiclePrice = item.vehicle.price * item.quantity;
+
+            // Prix des options sélectionnées (non multiplié par la quantité)
+            const optionsPrice = item.vehicle.selectedOptions?.reduce((sum, option) => sum + option.price, 0) || 0;
+
+            // Total pour ce véhicule : (prix de base * quantité) + prix des options
+            return total + vehiclePrice + optionsPrice;
+        }, 0);
     };
 
     const getTotalItems = () => {

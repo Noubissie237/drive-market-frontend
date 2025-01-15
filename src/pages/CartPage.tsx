@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { 
+import {
   Card,
   CardContent,
 } from '../components/ui/card';
-import { 
-  Trash2, 
-  Plus, 
-  Minus, 
+import {
+  Trash2,
+  Plus,
+  Minus,
   ShieldCheck,
   Truck,
   Clock,
@@ -43,7 +43,7 @@ const CartPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-light text-center mb-12">VOTRE PANIER</h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Liste des articles */}
           <div className="lg:col-span-2 space-y-6">
@@ -53,21 +53,33 @@ const CartPage: React.FC = () => {
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Image du produit */}
                     <div className="relative w-full md:w-48 h-48 bg-gray-100 rounded-lg overflow-hidden">
-                      <img 
-                        src={item.vehicle.images[0].url} 
+                      <img
+                        src={item.vehicle.images[0].url}
                         alt={item.vehicle.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     {/* Détails du produit */}
                     <div className="flex-grow">
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-xl font-medium">{item.vehicle.name}</h3>
-                          {/* <p className="text-gray-600 mt-1">{item.vehicle.color}</p> */}
+                          {/* Afficher les options sélectionnées */}
+                          {item.vehicle.selectedOptions && item.vehicle.selectedOptions.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-sm text-gray-600">Options :</p>
+                              <ul className="list-disc list-inside">
+                                {item.vehicle.selectedOptions.map((option) => (
+                                  <li key={option.id} className="text-sm text-gray-600">
+                                    {option.name} (+{option.price.toLocaleString('fr-FR')} XAF)
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
-                        <button 
+                        <button
                           className="text-gray-400 hover:text-red-500 transition-colors duration-200"
                           aria-label="Supprimer"
                           onClick={() => removeFromCart(item.vehicle.id)}
@@ -75,10 +87,10 @@ const CartPage: React.FC = () => {
                           <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
-                      
+
                       <div className="mt-6 flex justify-between items-end">
                         <div className="flex items-center gap-3">
-                          <button 
+                          <button
                             onClick={() => handleUpdateQuantity(item.vehicle.id, -1)}
                             className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                           >
@@ -87,7 +99,7 @@ const CartPage: React.FC = () => {
                           <span className="text-lg font-medium min-w-[2ch] text-center">
                             {getQuantity(item.vehicle.id)}
                           </span>
-                          <button 
+                          <button
                             onClick={() => handleUpdateQuantity(item.vehicle.id, 1)}
                             className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                           >
@@ -127,7 +139,7 @@ const CartPage: React.FC = () => {
             <Card className="sticky top-6">
               <CardContent className="p-6">
                 <h2 className="text-xl font-medium mb-6">Résumé de la commande</h2>
-                
+
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sous-total</span>
@@ -143,7 +155,7 @@ const CartPage: React.FC = () => {
                     <span>{total.toLocaleString('fr-FR')} XAF</span>
                   </div>
 
-                  <Button 
+                  <Button
                     size="lg"
                     className="w-full mt-6 bg-black text-white hover:bg-gray-800 transition-colors duration-300"
                     onClick={() => navigate('/checkout')}

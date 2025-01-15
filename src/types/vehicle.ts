@@ -25,6 +25,7 @@ export interface Vehicle {
   propulsion: PropulsionTyp;
   images: VehicleImage[];
   options: VehicleOption[];
+  selectedOptions?: Array<{ id: string; name: string; price: number }>;
 }
 
 // Interface pour les images
