@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
 import { Vehicle } from '../../types/vehicle';
-// import { useAuth } from './AuthContext';
-// import { useNavigate } from 'react-router-dom';
 
 interface CartItem {
     vehicle: Vehicle;
@@ -21,14 +19,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cart, setCart] = useState<CartItem[]>([]);
-    // const { isAuthenticated } = useAuth();
-    // const navigate = useNavigate();
 
     const addToCart = (vehicle: Vehicle) => {
-
-        // if (!isAuthenticated) {
-        //     navigate('/login');
-        // }
 
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.vehicle.id === vehicle.id);

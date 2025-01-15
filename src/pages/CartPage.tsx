@@ -14,56 +14,29 @@ import {
   Clock,
   CreditCard
 } from 'lucide-react';
-
-// Définition des interfaces
-interface CartItem {
-  id: number;
-  name: string;
-  color: string;
-  price: number;
-  image: string;
-}
-
-interface Quantities {
-  [key: number]: number;
-}
+import { useCart } from '../components/context/CartContext';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const [quantities, setQuantities] = useState<Quantities>({});
-  
-  // Exemple de données de panier
-  const cartItems: CartItem[] = [
-    {
-      id: 1,
-      name: "Tesla Model 3 Performance",
-      color: "Blanc Nacré",
-      price: 53990,
-      image: "https://s3-eu-west-1.amazonaws.com/staticeu.izmocars.com/toolkit/commonassets/2024/24nissan/24nissanxtrailhevtekna4wdsu4bfr/24nissanxtrailhevtekna4wdsu4bfr_animations/colorpix/fr/640x480/nissan_24xtrailhevtekna4wdsu4bfr_noirintense_angular-front.webp",
-    },
-    {
-      id: 2,
-      name: "Pack Protection Premium",
-      color: "Pour Tesla Model 3",
-      price: 1290,
-      image: "https://images.ad.fr/biblio_centrale/image/site/voiture.PNG",
-    }
-  ];
+  const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart(); // Utilise useCart
 
-  const updateQuantity = (id: number, delta: number): void => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: Math.max(1, (prev[id] || 1) + delta)
-    }));
+  // Fonction pour mettre à jour la quantité d'un article
+  const handleUpdateQuantity = (vehicleId: string, delta: number) => {
+    const currentQuantity = cart.find(item => item.vehicle.id === vehicleId)?.quantity || 1;
+    const newQuantity = Math.max(1, currentQuantity + delta);
+    updateQuantity(vehicleId, newQuantity);
   };
 
-  const getQuantity = (id: number): number => quantities[id] || 1;
+  // Fonction pour obtenir la quantité d'un article
+  const getQuantity = (vehicleId: string) => {
+    return cart.find(item => item.vehicle.id === vehicleId)?.quantity || 1;
+  };
 
-  const subtotal = cartItems.reduce((sum, item) => 
-    sum + item.price * getQuantity(item.id), 0
-  );
+  // Calcul du sous-total
+  const subtotal = getTotalPrice();
 
-  const shipping = 0; // Livraison gratuite
+  // Livraison gratuite
+  const shipping = 0;
   const total = subtotal + shipping;
 
   return (
@@ -74,15 +47,15 @@ const CartPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Liste des articles */}
           <div className="lg:col-span-2 space-y-6">
-            {cartItems.map(item => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            {cart.map(item => (
+              <Card key={item.vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Image du produit */}
                     <div className="relative w-full md:w-48 h-48 bg-gray-100 rounded-lg overflow-hidden">
                       <img 
-                        src={item.image} 
-                        alt={item.name}
+                        src={item.vehicle.images[0].url} 
+                        alt={item.vehicle.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -91,12 +64,13 @@ const CartPage: React.FC = () => {
                     <div className="flex-grow">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-xl font-medium">{item.name}</h3>
-                          <p className="text-gray-600 mt-1">{item.color}</p>
+                          <h3 className="text-xl font-medium">{item.vehicle.name}</h3>
+                          {/* <p className="text-gray-600 mt-1">{item.vehicle.color}</p> */}
                         </div>
                         <button 
                           className="text-gray-400 hover:text-red-500 transition-colors duration-200"
                           aria-label="Supprimer"
+                          onClick={() => removeFromCart(item.vehicle.id)}
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>
@@ -105,23 +79,23 @@ const CartPage: React.FC = () => {
                       <div className="mt-6 flex justify-between items-end">
                         <div className="flex items-center gap-3">
                           <button 
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => handleUpdateQuantity(item.vehicle.id, -1)}
                             className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                           >
                             <Minus className="h-4 w-4" />
                           </button>
                           <span className="text-lg font-medium min-w-[2ch] text-center">
-                            {getQuantity(item.id)}
+                            {getQuantity(item.vehicle.id)}
                           </span>
                           <button 
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => handleUpdateQuantity(item.vehicle.id, 1)}
                             className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
                         </div>
                         <p className="text-xl font-medium">
-                          {(item.price * getQuantity(item.id)).toLocaleString('fr-FR')} XAF
+                          {(item.vehicle.price * getQuantity(item.vehicle.id)).toLocaleString('fr-FR')} XAF
                         </p>
                       </div>
                     </div>
