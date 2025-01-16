@@ -3,14 +3,14 @@ export type VehicleStatus = 'AVAILABLE' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'CLEARA
 export type VehicleType = 'CAR' | 'MOTORCYCLE' | 'SCOOTER';
 export type PropulsionType = 'ELECTRIC' | 'GASOLINE' | 'HYBRID';
 
-enum VehiculeType {
+export enum VehiculeType {
   CAR,
   SCOOTER
 }
 
-enum PropulsionTyp {
-  CAR,
-  SCOOTER
+export enum PropulsionTyp {
+  ELECTRIC,
+  ESSENCE
 }
 
 // Interface principale pour un véhicule

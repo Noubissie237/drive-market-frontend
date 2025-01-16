@@ -14,10 +14,15 @@ import {
   Search,
 } from 'lucide-react';
 import { useQuery } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
+import VehicleCard from '../components/VehicleCard';
 
 const AdvancedSearchPage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedType, setSelectedType] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
+  const [visibleVehicles, setVisibleVehicles] = useState<number>(3);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]); // État pour les options sélectionnées
   const { loading, error, data } = useQuery(GET_VEHICLES);
 
   if (loading) {
@@ -56,6 +61,40 @@ const AdvancedSearchPage: React.FC = () => {
       </div>
     );
   }
+
+  // Fonction pour gérer la sélection/désélection des options
+  const handleOptionChange = (optionId: string) => {
+    setSelectedOptions((prev) =>
+      prev.includes(optionId)
+        ? prev.filter((id) => id !== optionId) // Décocher l'option
+        : [...prev, optionId] // Cocher l'option
+    );
+  };
+
+  // Filtrer les véhicules en fonction du type, de la plage de prix et des options sélectionnées
+  const filteredVehicles = data.vehicles.filter((vehicle: any) => {
+    const matchesType =
+      selectedType === 'all' ||
+      (selectedType === 'electric' && vehicle.propulsion === 'ELECTRIC') ||
+      (selectedType === 'gasoline' && vehicle.propulsion === 'ESSENCE') ||
+      (selectedType === 'motorcycle' && vehicle.type === 'SCOOTER');
+
+    const matchesPrice =
+      vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1];
+
+    const matchesOptions =
+      selectedOptions.length === 0 || // Si aucune option n'est sélectionnée, ignorer ce filtre
+      selectedOptions.every((optionId) =>
+        vehicle.options.some((option: any) => option.id === optionId)
+      ); // Vérifier si le véhicule possède toutes les options sélectionnées
+
+    return matchesType && matchesPrice && matchesOptions;
+  });
+
+  // Fonction pour afficher plus de véhicules
+  const handleShowMore = () => {
+    setVisibleVehicles((prev) => prev + 4);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
@@ -107,9 +146,7 @@ const AdvancedSearchPage: React.FC = () => {
                 Filtres
               </h2>
 
-
               <div className="space-y-10">
-
                 {/* Année avec style moderne */}
                 <div>
                   <label className="block text-xs font-medium mb-4 text-gray-700">
@@ -133,7 +170,7 @@ const AdvancedSearchPage: React.FC = () => {
                   <input
                     type="range"
                     min="0"
-                    max="100000"
+                    max="100000000"
                     step="1000"
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
@@ -141,39 +178,24 @@ const AdvancedSearchPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Sélecteurs stylisés */}
-                <div className="space-y-6">
-                  {['Marque', 'Kilométrage max'].map((label) => (
-                    <div key={label} className="space-y-2">
-                      <label className="block text-xs font-medium text-gray-700">{label}</label>
-                      <div className="relative group">
-                        <select className="w-full p-2.5 border border-gray-200 rounded-lg appearance-none bg-white pr-8 hover:border-gray-400 transition-colors focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm">
-                          <option value="">Sélectionner</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
                 {/* Options avec animations */}
                 <div className="space-y-4">
                   <label className="block text-xs font-medium text-gray-700">Options</label>
-                  {[
-                    'Climatisation',
-                    'GPS',
-                    'Caméra de recul',
-                    'Toit ouvrant',
-                    'Sièges chauffants'
-                  ].map(option => (
-                    <label key={option} className="flex items-center gap-3 text-xs cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-black focus:ring-black transition-shadow"
-                      />
-                      <span className="group-hover:translate-x-1 transition-transform duration-200">{option}</span>
-                    </label>
-                  ))}
+                  {Array.from(new Set(data.vehicles.flatMap((vehicle: any) => vehicle.options)))
+                    .slice(0, 15)
+                    .map((option: any) => (
+                      <label key={option.id} className="flex items-center gap-3 text-xs cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={selectedOptions.includes(option.id)} // Cochez la case si l'option est sélectionnée
+                          onChange={() => handleOptionChange(option.id)} // Appeler handleOptionChange lors du changement
+                          className="rounded border-gray-300 text-black focus:ring-black transition-shadow"
+                        />
+                        <span className="group-hover:translate-x-1 transition-transform duration-200">
+                          {option.name}
+                        </span>
+                      </label>
+                    ))}
                 </div>
 
                 {/* Boutons d'action modernisés */}
@@ -182,7 +204,15 @@ const AdvancedSearchPage: React.FC = () => {
                     <Check className="h-4 w-4 mr-2" />
                     Appliquer les filtres
                   </Button>
-                  <Button variant="outline" className="w-full py-5 rounded-xl hover:bg-gray-50 transition-colors duration-300 text-sm">
+                  <Button
+                    variant="outline"
+                    className="w-full py-5 rounded-xl hover:bg-gray-50 transition-colors duration-300 text-sm"
+                    onClick={() => {
+                      setSelectedOptions([]); // Réinitialiser les options sélectionnées
+                      setSelectedType('all'); // Réinitialiser le type de véhicule
+                      setPriceRange([0, 100000000]); // Réinitialiser la plage de prix
+                    }}
+                  >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Réinitialiser
                   </Button>
@@ -195,7 +225,9 @@ const AdvancedSearchPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* En-tête des résultats */}
             <div className="bg-white/80 backdrop-blur-lg p-5 rounded-xl shadow-lg flex justify-between items-center">
-              <p className="text-gray-600 text-sm font-medium">128 véhicules trouvés</p>
+              <p className="text-gray-600 text-sm font-medium">
+                {filteredVehicles.length} véhicules trouvés
+              </p>
               <div className="relative group">
                 <select
                   className="w-[200px] p-2.5 border border-gray-200 rounded-lg appearance-none bg-white pr-8 hover:border-gray-400 transition-all focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
@@ -211,46 +243,25 @@ const AdvancedSearchPage: React.FC = () => {
             </div>
 
             {/* Liste des véhicules avec effets 3D */}
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Card
-                key={index}
-                className="group overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 bg-white/90 backdrop-blur-lg rounded-xl"
-              >
-                <CardContent className="p-0">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="relative w-full md:w-80 h-56 overflow-hidden">
-                      <img
-                        src="https://images.ad.fr/biblio_centrale/image/site/voiture.PNG"
-                        alt="Vehicle"
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    <div className="p-6 flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-lg font-light mb-2 group-hover:text-black transition-colors">Tesla Model 3 Performance</h3>
-                          <p className="text-gray-600 text-sm">2023 • 15 000 km • Automatique • Électrique</p>
-                        </div>
-                        <p className="text-lg font-medium bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-                          53 990 XAF
-                        </p>
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {['GPS', 'Caméra 360°', 'Autopilot'].map(tag => (
-                          <span
-                            key={tag}
-                            className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors duration-300"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {filteredVehicles.slice(0, visibleVehicles).map((vehicle: any) => (
+              <VehicleCard
+                key={vehicle.id}
+                vehicle={vehicle}
+                onConsult={() => navigate(`/vehicule/${vehicle.id}`)}
+              />
             ))}
+
+            {/* Bouton "Voir plus" */}
+            {filteredVehicles.length > visibleVehicles && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={handleShowMore}
+                  className="bg-black hover:bg-gray-800 transition-colors duration-300 py-3 px-6 rounded-xl shadow-lg hover:shadow-xl text-sm"
+                >
+                  Voir plus
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
