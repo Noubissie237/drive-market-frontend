@@ -194,7 +194,6 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
 
       // Sauvegarder l'image localement et obtenir l'URL
       const localUrl = await saveImageLocally(file);
-      console.log("URL ----------",localUrl);
 
       // Mettre à jour le champ URL dans le formulaire
       const currentImages = form.getValues('images');

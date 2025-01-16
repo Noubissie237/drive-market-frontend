@@ -181,7 +181,7 @@ const PaymentPage = () => {
     );
   }
 
-  console.log(data.customerById);
+  // console.log(data.customerById);
   const onlyName = getNom(data.customerById.name);
   const onlySubname = getPrenom(data.customerById.name);
 

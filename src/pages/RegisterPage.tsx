@@ -74,8 +74,6 @@ const RegisterPage: React.FC = () => {
       customerData.registrationNumber = formData.registrationNumber;
     }
 
-    // TODO: Envoyer les données à l'API
-    console.log(customerData);
   };
 
 

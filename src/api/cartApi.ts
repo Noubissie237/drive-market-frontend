@@ -74,7 +74,7 @@ export const ADD_ITEM_TO_CART = gql`
 
 // Mutation pour mettre à jour la quantité
 export const UPDATE_QUANTITY = gql`
-  mutation UpdateQuantity($customerId: ID!, $itemId: ID!, $newQuantity: number) {
+  mutation UpdateQuantity($customerId: ID!, $itemId: ID!, $newQuantity: Int!) {
     updateQuantity(customerId: $customerId, itemId: $itemId, newQuantity: $newQuantity) {
       id
       customerId

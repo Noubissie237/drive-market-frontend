@@ -178,11 +178,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const updateQuantity = async (vehicleId: string, newQuantity: number) => {
-
         if (newQuantity < 1 || !userId) return;
 
         const { data } = await updateQuantityItemFromCartMutation({
-            variables: { customerId: userId, itemId: vehicleId, quantity: newQuantity },
+            variables: { customerId: userId, itemId: vehicleId, newQuantity: newQuantity },
             context: { service: 'cart' },
         });
 
