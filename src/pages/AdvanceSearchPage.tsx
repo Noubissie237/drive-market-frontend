@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
+import { GET_VEHICLES } from '../api/vehicleApi';
 import {
   Car,
   Bike,
@@ -10,13 +11,52 @@ import {
   Check,
   RefreshCw,
   ChevronDown,
+  Search,
 } from 'lucide-react';
+import { useQuery } from '@apollo/client';
 
 const AdvancedSearchPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
-  const [yearRange, setYearRange] = useState<number[]>([2018, 2024]);
-  
+  const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
+  const { loading, error, data } = useQuery(GET_VEHICLES);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full">
+              <span className="text-red-600">⚠️</span>
+            </div>
+            <h2 className="text-xl font-semibold text-center">Une erreur est survenue</h2>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 text-center">
+              Impossible de charger les véhicules. Veuillez réessayer plus tard.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+              variant="destructive"
+            >
+              Réessayer
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
       <div className="container mx-auto px-4">
@@ -44,8 +84,8 @@ const AdvancedSearchPage: React.FC = () => {
               onClick={() => setSelectedType(id)}
               className={`group p-6 rounded-xl transition-all duration-500 flex flex-col items-center gap-4
                 transform hover:-translate-y-2 hover:shadow-2xl
-                ${selectedType === id 
-                  ? 'bg-gradient-to-br from-black to-gray-800 text-white shadow-xl scale-105' 
+                ${selectedType === id
+                  ? 'bg-gradient-to-br from-black to-gray-800 text-white shadow-xl scale-105'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
             >
@@ -66,8 +106,25 @@ const AdvancedSearchPage: React.FC = () => {
                 <Filter className="h-5 w-5" />
                 Filtres
               </h2>
-              
+
+
               <div className="space-y-10">
+
+                {/* Année avec style moderne */}
+                <div>
+                  <label className="block text-xs font-medium mb-4 text-gray-700">
+                    Recherche logique (mots clés / (et, ou) / description / prix)
+                  </label>
+                  <div className="relative flex-grow">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Recherche avancée..."
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 {/* Prix avec design amélioré */}
                 <div>
                   <label className="block text-xs font-medium mb-4 text-gray-700">
@@ -80,21 +137,6 @@ const AdvancedSearchPage: React.FC = () => {
                     step="1000"
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black hover:accent-gray-700 transition-all"
-                  />
-                </div>
-
-                {/* Année avec style moderne */}
-                <div>
-                  <label className="block text-xs font-medium mb-4 text-gray-700">
-                    Année ({yearRange[0]} - {yearRange[1]})
-                  </label>
-                  <input
-                    type="range"
-                    min="2018"
-                    max="2024"
-                    value={yearRange[1]}
-                    onChange={(e) => setYearRange([yearRange[0], parseInt(e.target.value)])}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black hover:accent-gray-700 transition-all"
                   />
                 </div>
@@ -125,8 +167,8 @@ const AdvancedSearchPage: React.FC = () => {
                     'Sièges chauffants'
                   ].map(option => (
                     <label key={option} className="flex items-center gap-3 text-xs cursor-pointer group">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="rounded border-gray-300 text-black focus:ring-black transition-shadow"
                       />
                       <span className="group-hover:translate-x-1 transition-transform duration-200">{option}</span>
@@ -155,7 +197,7 @@ const AdvancedSearchPage: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-lg p-5 rounded-xl shadow-lg flex justify-between items-center">
               <p className="text-gray-600 text-sm font-medium">128 véhicules trouvés</p>
               <div className="relative group">
-                <select 
+                <select
                   className="w-[200px] p-2.5 border border-gray-200 rounded-lg appearance-none bg-white pr-8 hover:border-gray-400 transition-all focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                   defaultValue="recent"
                 >
@@ -170,14 +212,14 @@ const AdvancedSearchPage: React.FC = () => {
 
             {/* Liste des véhicules avec effets 3D */}
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="group overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 bg-white/90 backdrop-blur-lg rounded-xl"
               >
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row">
                     <div className="relative w-full md:w-80 h-56 overflow-hidden">
-                      <img 
+                      <img
                         src="https://images.ad.fr/biblio_centrale/image/site/voiture.PNG"
                         alt="Vehicle"
                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
@@ -196,8 +238,8 @@ const AdvancedSearchPage: React.FC = () => {
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {['GPS', 'Caméra 360°', 'Autopilot'].map(tag => (
-                          <span 
-                            key={tag} 
+                          <span
+                            key={tag}
                             className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors duration-300"
                           >
                             {tag}

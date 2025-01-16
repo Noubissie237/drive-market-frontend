@@ -32,7 +32,7 @@ const Navbar = () => {
     { name: 'Accueil', path: '/' },
     { name: 'Catalogue', path: '/catalogue' },
     { name: 'À propos', path: '/about' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'Historique', path: '/history' },
   ];
 
   const handleLogout = () => {
