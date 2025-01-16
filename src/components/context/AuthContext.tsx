@@ -55,6 +55,7 @@ export const useAuth = () => {
   return context;
 };
 
+
 export const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];

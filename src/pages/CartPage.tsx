@@ -54,8 +54,8 @@ const CartPage: React.FC = () => {
                     {/* Image du produit */}
                     <div className="relative w-full md:w-48 h-48 bg-gray-100 rounded-lg overflow-hidden">
                       <img
-                        src={item.vehicle.images[0].url}
-                        alt={item.vehicle.name}
+                        src={item.vehicle.image}
+                        alt={item.vehicle.productName}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -64,7 +64,7 @@ const CartPage: React.FC = () => {
                     <div className="flex-grow">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-xl font-medium">{item.vehicle.name}</h3>
+                          <h3 className="text-xl font-medium">{item.vehicle.productName}</h3>
                           {/* Afficher les options sélectionnées */}
                           {item.vehicle.selectedOptions && item.vehicle.selectedOptions.length > 0 && (
                             <div className="mt-2">

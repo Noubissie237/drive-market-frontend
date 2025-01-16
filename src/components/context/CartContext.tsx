@@ -3,7 +3,6 @@ import { useMutation, useQuery, useApolloClient } from '@apollo/client';
 // import { Vehicle } from '../../types/vehicle';
 import { ADD_ITEM_TO_CART, REMOVE_ITEM_FROM_CART, CLEAR_CART, GET_CART_ITEMS, UPDATE_QUANTITY } from '../../api/cartApi';
 import { decodeToken } from './AuthContext';
-import { VehicleImage } from '../../types/vehicle';
 import { Vehicle } from '../../types/vehicle';
 
 // interface Vehicle {

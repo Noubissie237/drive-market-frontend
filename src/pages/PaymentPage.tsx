@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../components/context/CartContext';
-import { useAuth, decodeToken } from '../components/context/AuthContext';
+import { useAuth } from '../components/context/AuthContext';
 import { GET_CUSTOMER_BY_ID } from '../api/customerApi';
 import { useQuery } from '@apollo/client';
-import Swal from 'sweetalert2';
+// import Swal from 'sweetalert2';
 
 
 function getPrenom(chaine: String) {
@@ -39,38 +39,7 @@ function getNom(chaine: String) {
 const PaymentPage = () => {
 
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const decodedToken = decodeToken(token);
-        if (decodedToken && decodedToken.id) {
-          setUserId(decodedToken.id);
-        }
-      }
-    }
-  }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    Swal.fire({
-      title: 'Connexion requise',
-      text: 'Vous devez vous connecter pour afficher le contenu de cette page',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Se connecter',
-      cancelButtonText: 'Annuler',
-      confirmButtonColor: '#0F172A',
-      cancelButtonColor: '#d33',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate('/login');
-      }
-    });
-    return;
-  }
+  const { userId } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -141,7 +110,7 @@ const PaymentPage = () => {
 
   const { loading, error, data } = useQuery(GET_CUSTOMER_BY_ID, {
     variables: { id: userId },
-    context: { service: 'VEHICLE' }
+    context: { service: 'customer' }
   });
 
   if (loading) {
@@ -185,7 +154,25 @@ const PaymentPage = () => {
   const onlyName = getNom(data.customerById.name);
   const onlySubname = getPrenom(data.customerById.name);
 
+  // if (userId == null) {
+  //   Swal.fire({
+  //     title: 'Connexion requise',
+  //     text: 'Vous devez vous connecter pour afficher le contenu de cette page',
+  //     icon: 'warning',
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Se connecter',
+  //     cancelButtonText: 'Annuler',
+  //     confirmButtonColor: '#0F172A',
+  //     cancelButtonColor: '#d33',
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       navigate('/login');
+  //     }
+  //   });
+  //   return;
+  // }
 
+  console.log(cart);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
@@ -471,15 +458,15 @@ const PaymentPage = () => {
                   {/* Liste des produits */}
                   {cart.map((item) => (
                     <div key={item.vehicle.id} className="flex gap-4 pb-4 border-b border-gray-100">
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="w-21 h-20 bg-gray-100 rounded-lg overflow-hidden">
                         <img
-                          src={item.vehicle.images[0].url}
-                          alt={item.vehicle.name}
+                          src={item.vehicle.image}
+                          alt={item.vehicle.productName}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium">{item.vehicle.name}</h3>
+                        <h3 className="text-sm font-medium">{item.vehicle.productName}</h3>
                         <p className="text-xs text-gray-600 mt-1">
                           Quantité : {item.quantity}
                         </p>
