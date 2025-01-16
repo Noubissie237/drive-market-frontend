@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Card, CardContent } from '../components/ui/card';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
   CreditCard, Lock, Check, ChevronRight, PlayIcon,
@@ -7,9 +7,71 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../components/context/CartContext';
+import { useAuth, decodeToken } from '../components/context/AuthContext';
+import { GET_CUSTOMER_BY_ID } from '../api/customerApi';
+import { useQuery } from '@apollo/client';
+import Swal from 'sweetalert2';
+
+
+function getPrenom(chaine: String) {
+  const blocs = chaine.split(' ');
+
+  const dernierBloc = blocs[blocs.length - 1];
+
+  return dernierBloc;
+}
+
+function getNom(chaine: String) {
+  const blocs = chaine.split(' ');
+
+  if (blocs.length <= 1) {
+    return "";
+  }
+
+  blocs.pop();
+
+  const resultat = blocs.join(' ');
+
+  return resultat;
+}
+
 
 const PaymentPage = () => {
+
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const decodedToken = decodeToken(token);
+        if (decodedToken && decodedToken.id) {
+          setUserId(decodedToken.id);
+        }
+      }
+    }
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    Swal.fire({
+      title: 'Connexion requise',
+      text: 'Vous devez vous connecter pour afficher le contenu de cette page',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Se connecter',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#0F172A',
+      cancelButtonColor: '#d33',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate('/login');
+      }
+    });
+    return;
+  }
+
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [wantCredit, setWantCredit] = useState(false);
@@ -68,7 +130,6 @@ const PaymentPage = () => {
     }
   };
 
-
   const orderSummary = {
     subtotal,
     tax,
@@ -77,6 +138,54 @@ const PaymentPage = () => {
     monthlyPayment: parseFloat(monthlyPayment), // Convertir en nombre
     interestRate: interestRates[creditDuration], // Taux d'intérêt actuel
   };
+
+  const { loading, error, data } = useQuery(GET_CUSTOMER_BY_ID, {
+    variables: { id: userId },
+    context: { service: 'VEHICLE' }
+  });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="mx-auto h-12 w-12 flex items-center justify-center bg-red-100 rounded-full">
+              <span className="text-red-600">⚠️</span>
+            </div>
+            <h2 className="text-xl font-semibold text-center">Une erreur est survenue</h2>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 text-center">
+              Impossible de charger les véhicules. Veuillez réessayer plus tard.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+              variant="destructive"
+            >
+              Réessayer
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  console.log(data.customerById);
+  const onlyName = getNom(data.customerById.name);
+  const onlySubname = getPrenom(data.customerById.name);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
@@ -105,9 +214,11 @@ const PaymentPage = () => {
                       Prénom
                     </label>
                     <input
+                      disabled
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                       placeholder="Wilfried"
+                      value={onlySubname.toUpperCase()}
                     />
                   </div>
                   <div>
@@ -115,6 +226,8 @@ const PaymentPage = () => {
                       Nom
                     </label>
                     <input
+                      disabled
+                      value={onlyName.toUpperCase()}
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                       placeholder="Noubissie kamga"
@@ -125,9 +238,12 @@ const PaymentPage = () => {
                       Adresse
                     </label>
                     <input
+                      disabled
+                      value={data.customerById.address.street.toUpperCase()}
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                      placeholder="Obilli"
+                      placeholder="Obili"
+
                     />
                   </div>
                   <div>
@@ -135,6 +251,8 @@ const PaymentPage = () => {
                       Ville
                     </label>
                     <input
+                      disabled
+                      value={data.customerById.address.city.toUpperCase()}
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                       placeholder="Paris"
@@ -145,6 +263,8 @@ const PaymentPage = () => {
                       Code postal
                     </label>
                     <input
+                      disabled
+                      value={data.customerById.address.postalCode}
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                       placeholder="23700"

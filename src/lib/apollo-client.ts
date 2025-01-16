@@ -1,8 +1,13 @@
 import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink } from '@apollo/client';
 
-const httpLink = createHttpLink({
-  uri: '/SERVICE-VEHICLE/graphql', // Retirez http://localhost:8079 car nous utilisons le proxy
-  credentials: 'include', // Ajoutez ceci pour gérer les cookies si nécessaire
+const vehicleLink = createHttpLink({
+  uri: '/SERVICE-VEHICLE/graphql', 
+  credentials: 'include', 
+});
+
+const customerLink = createHttpLink({
+  uri: '/SERVICE-CUSTOMER/graphql', 
+  credentials: 'include', 
 });
 
 const loggerLink = new ApolloLink((operation, forward) => {
@@ -20,8 +25,23 @@ const loggerLink = new ApolloLink((operation, forward) => {
 });
 
 
-export const client = new ApolloClient({
-  link: ApolloLink.from([loggerLink, httpLink]),
+export const vehicleClient = new ApolloClient({
+  link: ApolloLink.from([loggerLink, vehicleLink]),
+  cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'ignore',
+    },
+    query: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    },
+  }
+});
+
+export const customerClient = new ApolloClient({
+  link: ApolloLink.from([loggerLink, customerLink]),
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {

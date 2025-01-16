@@ -11,7 +11,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PaymentPage from './pages/PaymentPage';
 import { ApolloProvider } from '@apollo/client';
-import { client } from './lib/apollo-client';
+import { vehicleClient, customerClient } from './lib/apollo-client';
 import { CartProvider } from './components/context/CartContext';
 import VehiclesAdminPage from './pages/admin/vehicles';
 import AboutPage from './pages/AboutPage';
@@ -21,7 +21,7 @@ import { AuthProvider } from './components/context/AuthContext';
 function App() {
   return (
     <AuthProvider>
-      <ApolloProvider client={client}>
+      <ApolloProvider client={vehicleClient}>
         <CartProvider>
           <BrowserRouter>
             <Routes>
@@ -38,10 +38,14 @@ function App() {
                 <Route path="/vehicule/:id" element={<VehicleDetailPage />} />
                 <Route path="/panier" element={<CartPage />} />
                 <Route path="/deep-search" element={<AdvancedSearchPage />} />
-                <Route path="/checkout" element={<PaymentPage />} />
                 <Route path="*" element={<NotFoundPage />} />
                 <Route path="/admin" element={<VehiclesAdminPage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/checkout" element={
+                  <ApolloProvider client={customerClient}>
+                    <PaymentPage />
+                  </ApolloProvider>
+                } />
               </Route>
             </Routes>
           </BrowserRouter>
