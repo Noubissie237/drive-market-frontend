@@ -10,6 +10,8 @@ import { useCart } from '../components/context/CartContext';
 import { useAuth } from '../components/context/AuthContext';
 import { GET_CUSTOMER_BY_ID } from '../api/customerApi';
 import { useQuery } from '@apollo/client';
+import { CREATE_CASH_ORDER, CREATE_CREDIT_ORDER } from '../api/order';
+import { useMutation } from '@apollo/client';
 
 // Taux de TVA par pays
 const VAT_RATES: { [key: string]: number } = {
@@ -56,6 +58,54 @@ const PaymentPage = () => {
   const [initialDeposit, setInitialDeposit] = useState<number>(0);
   const [depositError, setDepositError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>("CM");
+  const [createCashOrder] = useMutation(CREATE_CASH_ORDER);
+  const [createCreditOrder] = useMutation(CREATE_CREDIT_ORDER);
+
+  const handlePayment = async () => {
+    setIsProcessing(true);
+
+    try {
+      const input = {
+        customerId: userId,
+        items: cart.map(item => ({
+          vehicleId: item.vehicle.id,
+          quantity: item.quantity,
+          // optionIds: item.vehicle.selectedOptions?.map(option => option.id) || [],
+        })),
+        deliveryCountry: selectedCountry,
+      };
+
+      if (wantCredit) {
+        const { data } = await createCreditOrder({
+          variables: {
+            input: {
+              ...input,
+              creditDuration: creditDuration,
+              interestRate: interestRates[creditDuration],
+            },
+          },
+          context: {
+            service: 'order'
+          }
+        });
+        console.log('Credit Order Created:', data.createCreditOrder);
+      } else {
+        const { data } = await createCashOrder({
+          variables: { input },
+          context: { service: 'order' }
+        });
+        console.log('Cash Order Created:', data.createCashOrder);
+      }
+
+      // Rediriger l'utilisateur vers une page de confirmation ou autre
+      navigate('/confirmation');
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Afficher un message d'erreur à l'utilisateur
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const { cart, getTotalPrice } = useCart();
 
@@ -506,7 +556,8 @@ const PaymentPage = () => {
                 {/* Bouton paiement */}
                 <Button
                   className="w-full bg-black hover:bg-gray-800 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden"
-                  onClick={() => setIsProcessing(true)}
+                  onClick={handlePayment}
+                  disabled={isProcessing || orderSummary.subtotal == 0}
                 >
                   {isProcessing ? (
                     <div className="flex items-center justify-center gap-2">

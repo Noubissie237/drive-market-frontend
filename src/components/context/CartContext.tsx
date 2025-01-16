@@ -143,7 +143,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (cartData && cartData.getCartItems) {
                     const cartItems = cartData.getCartItems.map((item: any) => ({
                         vehicle: {
-                            id: item.id,
+                            id: vehicle.id,
                             productName: item.productName,
                             price: item.price,
                             image: item.image,
