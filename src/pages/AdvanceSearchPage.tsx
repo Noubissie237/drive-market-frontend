@@ -19,10 +19,12 @@ import VehicleCard from '../components/VehicleCard';
 
 const AdvancedSearchPage: React.FC = () => {
   const navigate = useNavigate();
+  const [sortOrder, setSortOrder] = useState<string>('recent');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
   const [visibleVehicles, setVisibleVehicles] = useState<number>(3);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]); // État pour les options sélectionnées
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState<string>('');
   const { loading, error, data } = useQuery(GET_VEHICLES);
 
   if (loading) {
@@ -71,7 +73,42 @@ const AdvancedSearchPage: React.FC = () => {
     );
   };
 
-  // Filtrer les véhicules en fonction du type, de la plage de prix et des options sélectionnées
+  // Fonction pour analyser la recherche textuelle
+  const parseSearchText = (text: string) => {
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes(' ou ')) {
+      return { operator: 'ou', terms: lowerText.split(' ou ') };
+    } else if (lowerText.includes(' et ')) {
+      return { operator: 'et', terms: lowerText.split(' et ') };
+    } else {
+      return { operator: 'none', terms: [lowerText] };
+    }
+  };
+
+  // Fonction pour vérifier si un véhicule correspond aux termes de recherche
+  const matchesSearchText = (vehicle: any, terms: string[], operator: string) => {
+    const searchFields = [
+      vehicle.name.toLowerCase(),
+      vehicle.specifications.toLowerCase(),
+      vehicle.price.toString(),
+      ...vehicle.options.map((option: any) => option.name.toLowerCase()),
+    ];
+
+    if (operator === 'ou') {
+      return terms.some((term) =>
+        searchFields.some((field) => field.includes(term))
+      );
+    } else if (operator === 'et') {
+      return terms.every((term) =>
+        searchFields.some((field) => field.includes(term))
+      );
+    } else {
+      return searchFields.some((field) => field.includes(terms[0]));
+    }
+  };
+
+  // Filtrer les véhicules en fonction du type, de la plage de prix, des options sélectionnées et de la recherche textuelle
   const filteredVehicles = data.vehicles.filter((vehicle: any) => {
     const matchesType =
       selectedType === 'all' ||
@@ -83,18 +120,32 @@ const AdvancedSearchPage: React.FC = () => {
       vehicle.price >= priceRange[0] && vehicle.price <= priceRange[1];
 
     const matchesOptions =
-      selectedOptions.length === 0 || // Si aucune option n'est sélectionnée, ignorer ce filtre
+      selectedOptions.length === 0 ||
       selectedOptions.every((optionId) =>
         vehicle.options.some((option: any) => option.id === optionId)
-      ); // Vérifier si le véhicule possède toutes les options sélectionnées
+      );
 
-    return matchesType && matchesPrice && matchesOptions;
+    const { operator, terms } = parseSearchText(searchText);
+    const matchesSearch = matchesSearchText(vehicle, terms, operator);
+
+    return matchesType && matchesPrice && matchesOptions && matchesSearch;
   });
 
   // Fonction pour afficher plus de véhicules
   const handleShowMore = () => {
     setVisibleVehicles((prev) => prev + 4);
   };
+
+
+  const sortedAndFilteredVehicles = filteredVehicles.sort((a: any, b: any) => {
+    if (sortOrder === 'price-asc') {
+      return a.price - b.price; // Tri par prix croissant
+    } else if (sortOrder === 'price-desc') {
+      return b.price - a.price; // Tri par prix décroissant
+    } else {
+      return 0; // Aucun tri (ordre d'origine)
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
@@ -157,6 +208,8 @@ const AdvancedSearchPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="Recherche avancée..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -187,8 +240,8 @@ const AdvancedSearchPage: React.FC = () => {
                       <label key={option.id} className="flex items-center gap-3 text-xs cursor-pointer group">
                         <input
                           type="checkbox"
-                          checked={selectedOptions.includes(option.id)} // Cochez la case si l'option est sélectionnée
-                          onChange={() => handleOptionChange(option.id)} // Appeler handleOptionChange lors du changement
+                          checked={selectedOptions.includes(option.id)}
+                          onChange={() => handleOptionChange(option.id)}
                           className="rounded border-gray-300 text-black focus:ring-black transition-shadow"
                         />
                         <span className="group-hover:translate-x-1 transition-transform duration-200">
@@ -208,9 +261,10 @@ const AdvancedSearchPage: React.FC = () => {
                     variant="outline"
                     className="w-full py-5 rounded-xl hover:bg-gray-50 transition-colors duration-300 text-sm"
                     onClick={() => {
-                      setSelectedOptions([]); // Réinitialiser les options sélectionnées
-                      setSelectedType('all'); // Réinitialiser le type de véhicule
-                      setPriceRange([0, 100000000]); // Réinitialiser la plage de prix
+                      setSelectedOptions([]);
+                      setSelectedType('all');
+                      setPriceRange([0, 100000000]);
+                      setSearchText('');
                     }}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -231,19 +285,19 @@ const AdvancedSearchPage: React.FC = () => {
               <div className="relative group">
                 <select
                   className="w-[200px] p-2.5 border border-gray-200 rounded-lg appearance-none bg-white pr-8 hover:border-gray-400 transition-all focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
-                  defaultValue="recent"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
                 >
-                  <option value="recent">Plus récents</option>
+                  <option disabled value="recent">Tri par ordre</option>
                   <option value="price-asc">Prix croissant</option>
                   <option value="price-desc">Prix décroissant</option>
-                  <option value="mileage">Kilométrage</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
             </div>
 
             {/* Liste des véhicules avec effets 3D */}
-            {filteredVehicles.slice(0, visibleVehicles).map((vehicle: any) => (
+            {sortedAndFilteredVehicles.slice(0, visibleVehicles).map((vehicle: any) => (
               <VehicleCard
                 key={vehicle.id}
                 vehicle={vehicle}
