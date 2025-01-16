@@ -10,60 +10,68 @@ import { useCart } from '../components/context/CartContext';
 import { useAuth } from '../components/context/AuthContext';
 import { GET_CUSTOMER_BY_ID } from '../api/customerApi';
 import { useQuery } from '@apollo/client';
-// import Swal from 'sweetalert2';
 
+// Taux de TVA par pays
+const VAT_RATES: { [key: string]: number } = {
+  "CM": 1.0,
+  "NG": 1.3,
+  "CI": 1.2,
+  "SN": 1.4,
+  "GE": 2.0,
+  "FR": 2.0,
+  "ES": 2.1,
+  "IT": 2.2,
+  "CA": 2.3,
+  "US": 2.3,
+};
+
+const AFRICAN_COUNTRIES = ["CM", "NG", "CI", "SN"];
+
+const NON_AFRICAN_SHIPPING_COST = 30000;
 
 function getPrenom(chaine: String) {
   const blocs = chaine.split(' ');
-
   const dernierBloc = blocs[blocs.length - 1];
-
   return dernierBloc;
 }
 
 function getNom(chaine: String) {
   const blocs = chaine.split(' ');
-
   if (blocs.length <= 1) {
     return "";
   }
-
   blocs.pop();
-
   const resultat = blocs.join(' ');
-
   return resultat;
 }
 
-
 const PaymentPage = () => {
-
   const navigate = useNavigate();
   const { userId } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState<string>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [wantCredit, setWantCredit] = useState(false);
-  const [creditDuration, setCreditDuration] = useState<number>(72); // Durée du crédit en mois
-  const [initialDeposit, setInitialDeposit] = useState<number>(0); // Apport initial
-  const [depositError, setDepositError] = useState<string | null>(null); // Message d'erreur pour l'apport initial
-  // Utilise le contexte du panier
+  const [creditDuration, setCreditDuration] = useState<number>(72);
+  const [initialDeposit, setInitialDeposit] = useState<number>(0);
+  const [depositError, setDepositError] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>("CM");
+
   const { cart, getTotalPrice } = useCart();
 
   // Calcul des totaux dynamiques
   const subtotal = getTotalPrice();
-  const tax = subtotal * 0.03; // Exemple de TVA à 3%
-  const shipping = 0; // Livraison gratuite
+  const tax = subtotal * (VAT_RATES[selectedCountry] / 100);
+  const shipping = AFRICAN_COUNTRIES.includes(selectedCountry) ? 0 : NON_AFRICAN_SHIPPING_COST;
   const total = subtotal + tax + shipping;
 
   // Taux d'intérêt en fonction de la durée
   const interestRates: { [key: number]: number } = {
-    48: 3.9, // 3.9% APR pour 48 mois
-    60: 4.2, // 4.2% APR pour 60 mois
-    72: 4.9, // 4.9% APR pour 72 mois
+    48: 3.9,
+    60: 4.2,
+    72: 4.9,
   };
 
-  // Calcul du paiement mensuel
   const calculateMonthlyPayment = (total: number, duration: number, interestRate: number) => {
     const monthlyInterestRate = interestRate / 100 / 12;
     const numerator = monthlyInterestRate * Math.pow(1 + monthlyInterestRate, duration);
@@ -73,7 +81,6 @@ const PaymentPage = () => {
 
   const monthlyPayment = calculateMonthlyPayment(total, creditDuration, interestRates[creditDuration]);
 
-  // Validation de l'apport initial
   const validateInitialDeposit = (value: number) => {
     if (value < parseFloat(monthlyPayment)) {
       setDepositError("L'apport initial ne peut pas être inférieur au montant du paiement mensuel.");
@@ -84,19 +91,18 @@ const PaymentPage = () => {
   };
 
   const handleDepositChange = (value: string) => {
-    // Convertir la valeur en nombre
     const numericValue = parseFloat(value);
-
-    // Vérifier si la valeur est un nombre valide
     if (isNaN(numericValue)) {
-      // Si la valeur n'est pas valide, définir l'apport initial à 0
       setInitialDeposit(0);
       setDepositError("Veuillez saisir un montant valide.");
     } else {
-      // Si la valeur est valide, mettre à jour l'apport initial
       setInitialDeposit(numericValue);
-      validateInitialDeposit(numericValue); // Valider l'apport initial
+      validateInitialDeposit(numericValue);
     }
+  };
+
+  const handleCountryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCountry(event.target.value);
   };
 
   const orderSummary = {
@@ -104,8 +110,8 @@ const PaymentPage = () => {
     tax,
     shipping,
     total,
-    monthlyPayment: parseFloat(monthlyPayment), // Convertir en nombre
-    interestRate: interestRates[creditDuration], // Taux d'intérêt actuel
+    monthlyPayment: parseFloat(monthlyPayment),
+    interestRate: interestRates[creditDuration],
   };
 
   const { loading, error, data } = useQuery(GET_CUSTOMER_BY_ID, {
@@ -150,29 +156,8 @@ const PaymentPage = () => {
     );
   }
 
-  // console.log(data.customerById);
   const onlyName = getNom(data.customerById.name);
   const onlySubname = getPrenom(data.customerById.name);
-
-  // if (userId == null) {
-  //   Swal.fire({
-  //     title: 'Connexion requise',
-  //     text: 'Vous devez vous connecter pour afficher le contenu de cette page',
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Se connecter',
-  //     cancelButtonText: 'Annuler',
-  //     confirmButtonColor: '#0F172A',
-  //     cancelButtonColor: '#d33',
-  //   }).then((result) => {
-  //     if (result.isConfirmed) {
-  //       navigate('/login');
-  //     }
-  //   });
-  //   return;
-  // }
-
-  console.log(cart);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
@@ -230,7 +215,6 @@ const PaymentPage = () => {
                       type="text"
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
                       placeholder="Obili"
-
                     />
                   </div>
                   <div>
@@ -263,9 +247,11 @@ const PaymentPage = () => {
                     </label>
                     <select
                       className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:ring-opacity-20 focus:outline-none text-sm"
+                      value={selectedCountry}
+                      onChange={handleCountryChange}
                     >
                       <option value="CM">Cameroun</option>
-                      <option value="NI">Nigéria</option>
+                      <option value="NG">Nigéria</option>
                       <option value="CI">Côte d'ivoire</option>
                       <option value="SN">Sénégal</option>
                       <option value="GE">Allemagne</option>
@@ -273,7 +259,7 @@ const PaymentPage = () => {
                       <option value="ES">Espagne</option>
                       <option value="IT">Italie</option>
                       <option value="CA">Canada</option>
-                      <option value="US">Etat Unis</option>
+                      <option value="US">États-Unis</option>
                     </select>
                   </div>
                 </div>
@@ -486,12 +472,16 @@ const PaymentPage = () => {
                       <span>{orderSummary.subtotal.toLocaleString()}XAF</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">TVA</span>
+                      <span className="text-gray-600">TVA ({VAT_RATES[selectedCountry]}%)</span>
                       <span>{orderSummary.tax.toLocaleString()}XAF</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Livraison</span>
-                      <span className="text-green-600">Gratuite</span>
+                      {AFRICAN_COUNTRIES.includes(selectedCountry) ? (
+                        <span className="text-green-600">Gratuite</span>
+                      ) : (
+                        <span>{orderSummary.shipping.toLocaleString()}XAF</span>
+                      )}
                     </div>
                   </div>
 
