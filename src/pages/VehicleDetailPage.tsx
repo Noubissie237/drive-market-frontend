@@ -7,7 +7,7 @@ import { useQuery } from '@apollo/client';
 import { GET_VEHICLE } from '../api/vehicleApi';
 import { useCart } from '../components/context/CartContext';
 import { Vehicle, VehicleImage, VehicleOption } from '../types/vehicle';
-import Swal from 'sweetalert2'; // Pour les notifications
+import Swal from 'sweetalert2'; 
 
 const VehicleDetailPage = () => {
   const { addToCart } = useCart();

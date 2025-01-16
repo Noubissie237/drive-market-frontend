@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  userId: string | null; // Ajout de userId
   login: (token: string) => void;
   logout: () => void;
 }
@@ -10,27 +11,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null); // Ajout de userId
 
   // Vérifie si un token est présent dans localStorage au chargement
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true);
+      const decodedToken = decodeToken(token);
+      if (decodedToken && decodedToken.id) {
+        setIsAuthenticated(true);
+        setUserId(decodedToken.id); // Ajout de userId
+      }
     }
   }, []);
 
   const login = (token: string) => {
     localStorage.setItem('token', token); // Stocke le token dans localStorage
-    setIsAuthenticated(true); // Met à jour l'état d'authentification
+    const decodedToken = decodeToken(token);
+    if (decodedToken && decodedToken.id) {
+      setIsAuthenticated(true);
+      setUserId(decodedToken.id); // Ajout de userId
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('token'); // Supprime le token
-    setIsAuthenticated(false); // Met à jour l'état d'authentification
+    setIsAuthenticated(false);
+    setUserId(null); // Réinitialisation de userId
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userId, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -46,9 +57,8 @@ export const useAuth = () => {
 
 export const decodeToken = (token: string) => {
   try {
-    // Le token JWT est composé de trois parties séparées par des points : header.payload.signature
-    const base64Url = token.split('.')[1]; // On récupère la partie payload
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // On remplace les caractères spécifiques à base64Url
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')

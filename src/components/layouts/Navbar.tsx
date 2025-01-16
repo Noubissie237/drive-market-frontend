@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, Plus, LogOut } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,11 +12,9 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const cartRef = useRef<HTMLDivElement>(null);
-  const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
-  const { isAuthenticated, logout } = useAuth(); // Récupère l'état d'authentification et la méthode logout
-
-  const isActive = (path: string) => location.pathname === path;
-
+  const { cart, removeFromCart, updateQuantity, getTotalPrice, loading, error } = useCart();
+  const { isAuthenticated, logout } = useAuth();
+  console.log(cart)
   // Gestionnaire de clic en dehors du panier
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -28,6 +27,8 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isActive = (path: string) => location.pathname === path;
+
   const navigation = [
     { name: 'Accueil', path: '/' },
     { name: 'Catalogue', path: '/catalogue' },
@@ -36,8 +37,8 @@ const Navbar = () => {
   ];
 
   const handleLogout = () => {
-    logout(); // Déconnecte l'utilisateur
-    navigate('/'); // Redirige vers la page d'accueil
+    logout();
+    navigate('/');
   };
 
   return (
@@ -95,15 +96,20 @@ const Navbar = () => {
                     </button>
                   </div>
 
-                  {cart.length === 0 ? (
+                  {loading ? (
+                    <p className="text-gray-500 text-center py-4">Chargement du panier...</p>
+                  ) : error ? (
+                    <p className="text-red-500 text-center py-4">Erreur lors du chargement du panier</p>
+                  ) : cart.length === 0 ? (
                     <p className="text-gray-500 text-center py-4">Votre panier est vide</p>
                   ) : (
                     <>
                       <div className="space-y-4 max-h-96 overflow-y-auto">
                         {cart.map((item) => (
+                          
                           <div key={item.vehicle.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div>
-                              <h4 className="font-medium">{item.vehicle.name}</h4>
+                              <h4 className="font-medium">{item.vehicle.productName}</h4>
                               <p className="text-sm text-gray-500">{item.vehicle.price.toLocaleString()} XAF</p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -163,7 +169,7 @@ const Navbar = () => {
             {/* Affiche LogOut si l'utilisateur est connecté, sinon affiche User */}
             {isAuthenticated ? (
               <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-5 w-5 text" />
+                <LogOut className="h-5 w-5" />
               </Button>
             ) : (
               <Link to="/login">

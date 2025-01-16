@@ -11,17 +11,16 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PaymentPage from './pages/PaymentPage';
 import { ApolloProvider } from '@apollo/client';
-import { vehicleClient, customerClient } from './lib/apollo-client';
+import { apolloClient } from './lib/apollo-client'; // Utiliser le client Apollo unifié
 import { CartProvider } from './components/context/CartContext';
 import VehiclesAdminPage from './pages/admin/vehicles';
 import AboutPage from './pages/AboutPage';
 import { AuthProvider } from './components/context/AuthContext';
 
-
 function App() {
   return (
     <AuthProvider>
-      <ApolloProvider client={vehicleClient}>
+      <ApolloProvider client={apolloClient}> {/* Utiliser le client Apollo unifié */}
         <CartProvider>
           <BrowserRouter>
             <Routes>
@@ -41,11 +40,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage />} />
                 <Route path="/admin" element={<VehiclesAdminPage />} />
                 <Route path="/about" element={<AboutPage />} />
-                <Route path="/checkout" element={
-                  <ApolloProvider client={customerClient}>
-                    <PaymentPage />
-                  </ApolloProvider>
-                } />
+                <Route path="/checkout" element={<PaymentPage />} />
               </Route>
             </Routes>
           </BrowserRouter>
