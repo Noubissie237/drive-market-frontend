@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, userId } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +54,10 @@ const LoginPage: React.FC = () => {
       console.error('Erreur lors de la connexion :', error);
     }
   };
+
+  if (userId != null) {
+    navigate('/');
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
