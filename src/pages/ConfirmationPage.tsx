@@ -123,7 +123,7 @@ const ConfirmationPage = () => {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/history')}
             >
               Voir mes commandes
             </Button>
