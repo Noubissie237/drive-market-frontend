@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useMutation, useQuery, useApolloClient } from '@apollo/client';
+import { useMutation, useApolloClient } from '@apollo/client';
 import { ADD_ITEM_TO_CART, REMOVE_ITEM_FROM_CART, CLEAR_CART, GET_CART_ITEMS, UPDATE_QUANTITY } from '../../api/cartApi';
 import { decodeToken } from './AuthContext';
 import { Vehicle } from '../../types/vehicle';
@@ -57,44 +57,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     // Charger les articles du panier depuis le backend
-    useEffect(() => {
-        if (userId) {
-            const fetchCartItems = async () => {
-                setLoading(true);
-                try {
-                    const { data } = await client.query({
-                        query: GET_CART_ITEMS,
-                        variables: { customerId: userId },
-                        context: { service: 'cart' },
-                    });
+    const fetchCartItems = async () => {
+        if (!userId) return;
 
-                    if (data && data.getCartItems) {
-                        const cartItems = data.getCartItems.map((item: any) => ({
-                            vehicle: {
-                                id: item.id,
-                                productName: item.productName,
-                                price: item.price,
-                                image: item.image,
-                                selectedOptions: item.options.map((opt: any) => ({
-                                    id: opt.id,
-                                    name: opt.name,
-                                    price: parseFloat(opt.value),
-                                })),
-                            },
-                            quantity: item.quantity,
-                        }));
-                        setCart(cartItems);
-                    }
-                } catch (err) {
-                    setError(err);
-                    console.error('Erreur lors du chargement du panier :', err);
-                } finally {
-                    setLoading(false);
-                }
-            };
+        setLoading(true);
+        try {
+            const { data } = await client.query({
+                query: GET_CART_ITEMS,
+                variables: { customerId: userId },
+                context: { service: 'cart' },
+            });
 
-            fetchCartItems();
+            if (data && data.getCartItems) {
+                const cartItems = data.getCartItems.map((item: any) => ({
+                    vehicle: {
+                        id: item.id,
+                        productName: item.productName,
+                        price: item.price,
+                        image: item.image,
+                        selectedOptions: item.options.map((opt: any) => ({
+                            id: opt.id,
+                            name: opt.name,
+                            price: parseFloat(opt.value),
+                        })),
+                    },
+                    quantity: item.quantity,
+                }));
+                setCart(cartItems);
+            }
+        } catch (err) {
+            setError(err);
+            console.error('Erreur lors du chargement du panier :', err);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        fetchCartItems();
     }, [userId, client]);
 
     const [addItemToCartMutation] = useMutation(ADD_ITEM_TO_CART);
@@ -114,95 +114,56 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         try {
-            const { data } = await addItemToCartMutation({
+            await addItemToCartMutation({
                 variables: { customerId: userId, itemInput: itemInput },
                 context: { service: 'cart' },
             });
-
-            if (data.addItemToCart) {
-                // Recharger les données du panier depuis le serveur
-                const { data: cartData } = await client.query({
-                    query: GET_CART_ITEMS,
-                    variables: { customerId: userId },
-                    context: { service: 'cart' },
-                });
-
-                if (cartData && cartData.getCartItems) {
-                    const cartItems = cartData.getCartItems.map((item: any) => ({
-                        vehicle: {
-                            id: vehicle.id,
-                            productName: item.productName,
-                            price: item.price,
-                            image: item.image,
-                            selectedOptions: item.options.map((opt: any) => ({
-                                id: opt.id,
-                                name: opt.name,
-                                price: parseFloat(opt.value),
-                            })),
-                        },
-                        quantity: item.quantity,
-                    }));
-                    setCart(cartItems);
-                }
-            }
+            await fetchCartItems(); // Recharger le panier après l'ajout
         } catch (err) {
             console.error('Erreur lors de l\'ajout au panier :', err);
         }
     };
 
     const handleClearCart = async () => {
-        const { data } = await clearCartMutation({
-            variables: {
-                customerId: userId
-            },
-            context: { service: 'cart' }
-        });
-        if (data.clearCart) {
-            setCart(prevCart => prevCart.filter(item => item.vehicle.id === userId));
+        if (!userId) return;
+
+        try {
+            await clearCartMutation({
+                variables: { customerId: userId },
+                context: { service: 'cart' },
+            });
+            setCart([]); // Vider le panier local
+        } catch (err) {
+            console.error('Erreur lors de la suppression du panier :', err);
         }
-    }
+    };
 
     const removeFromCart = async (vehicleId: string) => {
         if (!userId) return;
 
-        const { data } = await removeItemFromCartMutation({
-            variables: { customerId: userId, itemId: vehicleId },
-            context: { service: 'cart' },
-        });
-
-        if (data.removeItemFromCart) {
-            setCart(prevCart => prevCart.filter(item => item.vehicle.id !== "0"));
+        try {
+            await removeItemFromCartMutation({
+                variables: { customerId: userId, itemId: vehicleId },
+                context: { service: 'cart' },
+            });
+            await fetchCartItems(); // Recharger le panier après la suppression
+        } catch (err) {
+            console.error('Erreur lors de la suppression du panier :', err);
         }
     };
 
     const updateQuantity = async (vehicleId: string, newQuantity: number) => {
         if (newQuantity < 1 || !userId) return;
 
-        const { data } = await updateQuantityItemFromCartMutation({
-            variables: { customerId: userId, itemId: vehicleId, newQuantity: newQuantity },
-            context: { service: 'cart' },
-        });
-
-        if (data.updateQuantity) {
-            setCart(prevCart =>
-                prevCart.map(item =>
-                    item.vehicle.id === vehicleId
-                        ? { ...item, quantity: newQuantity }
-                        : item
-                )
-            );
+        try {
+            await updateQuantityItemFromCartMutation({
+                variables: { customerId: userId, itemId: vehicleId, newQuantity: newQuantity },
+                context: { service: 'cart' },
+            });
+            await fetchCartItems(); // Recharger le panier après la mise à jour
+        } catch (err) {
+            console.error('Erreur lors de la mise à jour de la quantité :', err);
         }
-
-
-        // if (newQuantity < 1 || !userId) return;
-
-        // setCart(prevCart =>
-        //     prevCart.map(item =>
-        //         item.vehicle.id === vehicleId
-        //             ? { ...item, quantity: newQuantity }
-        //             : item
-        //     )
-        // );
     };
 
     const getTotalPrice = () => {

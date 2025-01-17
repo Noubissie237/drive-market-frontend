@@ -91,13 +91,14 @@ const PaymentPage = () => {
           }
         });
         console.log('Credit Order Created:', data.createCreditOrder);
+        handleClearCart();
       } else {
         const { data } = await createCashOrder({
           variables: { input },
           context: { service: 'order' }
         });
         console.log('Cash Order Created:', data.createCashOrder);
-        console.log(data)
+        handleClearCart();
       }
 
       // Rediriger l'utilisateur vers une page de confirmation ou autre
@@ -110,7 +111,7 @@ const PaymentPage = () => {
     }
   };
 
-  const { cart, getTotalPrice } = useCart();
+  const { cart, getTotalPrice, handleClearCart } = useCart();
 
   // Calcul des totaux dynamiques
   const subtotal = getTotalPrice();
