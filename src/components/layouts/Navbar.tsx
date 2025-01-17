@@ -4,6 +4,8 @@ import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { CLEAR_CART } from '../../api/cartApi';
+import { useMutation } from '@apollo/client';
 
 
 const Navbar = () => {
@@ -13,7 +15,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const cartRef = useRef<HTMLDivElement>(null);
   const { cart, removeFromCart, updateQuantity, getTotalPrice, loading, error } = useCart();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, userId, logout } = useAuth();
+  const [clearCart] = useMutation(CLEAR_CART);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,6 +42,16 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
+
+  const handleClearCart = async () => {
+    const { data } = await clearCart({
+      variables: {
+        customerId: userId
+      },
+      context: { service: 'cart' }
+    })
+    console.log("Cart Clean", data);
+  }
 
   return (
     <nav className="bg-white shadow-md">
@@ -105,7 +118,7 @@ const Navbar = () => {
                     <>
                       <div className="space-y-4 max-h-96 overflow-y-auto">
                         {cart.map((item) => (
-                          
+
                           <div key={item.vehicle.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div>
                               <h4 className="font-medium">{item.vehicle.productName}</h4>
@@ -158,9 +171,20 @@ const Navbar = () => {
                         >
                           Voir plus
                         </Button>
+
+                        <button
+                          className='text-center w-full mt-5 text-gray-600 hover:text-red-600'
+                          onClick={handleClearCart}
+                        >
+                          <em>
+                            vider le panier
+                          </em>
+                        </button>
+
                       </div>
                     </>
                   )}
+
                 </div>
               )}
             </div>

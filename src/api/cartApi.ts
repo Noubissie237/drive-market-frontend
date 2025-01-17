@@ -126,22 +126,22 @@ export const REMOVE_ITEM_FROM_CART = gql`
 export const CLEAR_CART = gql`
   mutation ClearCart($customerId: ID!) {
     clearCart(customerId: $customerId) {
-      id
+      # id
       customerId
-      items {
-        id
-        productName
-        quantity
-        price
-        image
-        options {
-          id
-          name
-          value
-        }
-      }
-      total
-      state
+      # items {
+      #   id
+      #   productName
+      #   quantity
+      #   price
+      #   image
+      #   options {
+      #     id
+      #     name
+      #     value
+      #   }
+      # }
+      # total
+      # state
     }
   }
 `;
