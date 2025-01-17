@@ -65,11 +65,13 @@ const PaymentPage = () => {
     setIsProcessing(true);
 
     try {
+
       const input = {
         customerId: userId,
         items: cart.map(item => ({
           vehicleId: item.vehicle.id,
           quantity: item.quantity,
+          image: item.vehicle.image,
           // optionIds: item.vehicle.selectedOptions?.map(option => option.id) || [],
         })),
         deliveryCountry: selectedCountry,
@@ -95,6 +97,7 @@ const PaymentPage = () => {
           context: { service: 'order' }
         });
         console.log('Cash Order Created:', data.createCashOrder);
+        console.log(data)
       }
 
       // Rediriger l'utilisateur vers une page de confirmation ou autre

@@ -66,6 +66,7 @@ export const GET_ORDERS_BY_CUSTOMER = gql`
         vehicleName
         quantity
         subtotal
+        image
       }
       status
       deliveryCountry
@@ -149,20 +150,12 @@ export const CREATE_CASH_ORDER = gql`
       #     routingNumber
       #   }
       # }
-      # items {
-      #   id
-      #   vehicleId
-      #   vehicleName
-      #   vehicleBasePrice
-      #   quantity
-      #   options {
-      #     optionId
-      #     name
-      #     description
-      #     price
-      #   }
-      #   subtotal
-      # }
+      items {
+        vehicleId
+        vehicleName
+        quantity
+        subtotal
+      }
       # status
       # deliveryCountry
       # createdAt

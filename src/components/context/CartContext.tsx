@@ -22,6 +22,7 @@ import { Vehicle } from '../../types/vehicle';
 interface CartItem {
     vehicle: Vehicle & { selectedOptions?: Array<{ id: string; name: string; price: number }> };
     quantity: number;
+    image: string;
 }
 
 interface CartContextType {
