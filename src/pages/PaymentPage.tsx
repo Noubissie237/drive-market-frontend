@@ -65,17 +65,17 @@ const PaymentPage = () => {
     setIsProcessing(true);
 
     try {
-
       const input = {
         customerId: userId,
         items: cart.map(item => ({
-          vehicleId: item.vehicle.id,
+          vehicleId: item.vehicle.productId,
           quantity: item.quantity,
           image: item.vehicle.image,
-          // optionIds: item.vehicle.selectedOptions?.map(option => option.id) || [],
         })),
         deliveryCountry: selectedCountry,
       };
+
+      let orderData;
 
       if (wantCredit) {
         const { data } = await createCreditOrder({
@@ -90,19 +90,34 @@ const PaymentPage = () => {
             service: 'order'
           }
         });
-        console.log('Credit Order Created:', data.createCreditOrder);
-        handleClearCart();
+        orderData = data.createCreditOrder;
+        console.log('Credit Order Created:', orderData);
       } else {
         const { data } = await createCashOrder({
           variables: { input },
           context: { service: 'order' }
         });
-        console.log('Cash Order Created:', data.createCashOrder);
-        handleClearCart();
+        orderData = data.createCashOrder;
+        console.log('Cash Order Created:', orderData);
       }
 
-      // Rediriger l'utilisateur vers une page de confirmation ou autre
-      navigate('/confirmation');
+      handleClearCart();
+
+      navigate('/confirmation', {
+        state: {
+          total: orderSummary.total,
+          tax: orderSummary.tax,
+          shipping: orderSummary.shipping,
+          orderId: orderData.orderId,
+          paymentMethod: paymentMethod,
+          creditDetails: wantCredit ? {
+            monthlyPayment: orderSummary.monthlyPayment,
+            creditDuration: creditDuration,
+            interestRate: orderSummary.interestRate,
+          } : null,
+        },
+      });
+
     } catch (error) {
       console.error('Error creating order:', error);
       // Afficher un message d'erreur à l'utilisateur
