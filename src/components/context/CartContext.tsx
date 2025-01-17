@@ -71,7 +71,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data && data.getCartItems) {
                 const cartItems = data.getCartItems.map((item: any) => ({
                     vehicle: {
-                        id: item.id,
+                        id: item.productId,
                         productName: item.productName,
                         price: item.price,
                         image: item.image,
@@ -106,12 +106,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!userId) return;
 
         const itemInput = {
+            id: vehicle.id,
             productName: vehicle.name,
             price: vehicle.price,
             quantity: 1,
             image: vehicle.images[0].url,
             options: vehicle.selectedOptions?.map(opt => opt.name) || [],
         };
+
+        console.log(itemInput)
 
         try {
             await addItemToCartMutation({

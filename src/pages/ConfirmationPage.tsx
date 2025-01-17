@@ -8,8 +8,7 @@ const ConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Vous pouvez passer les détails de la commande via location state
-  // const orderDetails = location.state?.orderDetails;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">

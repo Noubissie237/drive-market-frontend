@@ -5,6 +5,7 @@ export const GET_CART_ITEMS = gql`
   query GetCartItems($customerId: ID!) {
     getCartItems(customerId: $customerId) {
       id
+      productId
       productName
       quantity
       price
