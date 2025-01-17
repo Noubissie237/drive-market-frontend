@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userId: string | null; // Ajout de userId
+  userId: string | null;
   login: (token: string) => void;
   logout: () => void;
 }
@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null); // Ajout de userId
+  const [userId, setUserId] = useState<string | null>(null); 
 
   // Vérifie si un token est présent dans localStorage au chargement
   useEffect(() => {
@@ -20,24 +20,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const decodedToken = decodeToken(token);
       if (decodedToken && decodedToken.id) {
         setIsAuthenticated(true);
-        setUserId(decodedToken.id); // Ajout de userId
+        setUserId(decodedToken.id); 
       }
     }
   }, []);
 
   const login = (token: string) => {
-    localStorage.setItem('token', token); // Stocke le token dans localStorage
+    localStorage.setItem('token', token);
     const decodedToken = decodeToken(token);
     if (decodedToken && decodedToken.id) {
       setIsAuthenticated(true);
-      setUserId(decodedToken.id); // Ajout de userId
+      setUserId(decodedToken.id); 
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token'); // Supprime le token
+    localStorage.removeItem('token');
     setIsAuthenticated(false);
-    setUserId(null); // Réinitialisation de userId
+    setUserId(null); 
   };
 
   return (

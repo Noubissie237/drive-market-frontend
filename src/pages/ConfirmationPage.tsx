@@ -32,17 +32,6 @@ const ConfirmationPage = () => {
             <CardContent className="p-6">
               <h2 className="text-xl font-light mb-4">Prochaines étapes</h2>
               <div className="space-y-4">
-                {/* <div className="flex gap-4 items-start">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Email de confirmation</h3>
-                    <p className="text-sm text-gray-600">
-                      Un email détaillé vous sera envoyé dans les prochaines minutes
-                    </p>
-                  </div>
-                </div> */}
 
                 <div className="flex gap-4 items-start">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
