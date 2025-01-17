@@ -56,45 +56,20 @@ export const GET_ORDERS_BY_CUSTOMER = gql`
       orderId
       customerInfo {
         customerId
-        name
-        email
-        phone
         address {
           street
           city
-          state
-          country
-          zipCode
-        }
-        paymentInfo {
-          paymentMethod
-          accountNumber
-          routingNumber
         }
       }
       items {
-        id
         vehicleId
         vehicleName
-        vehicleBasePrice
         quantity
-        options {
-          optionId
-          name
-          description
-          price
-        }
         subtotal
       }
       status
       deliveryCountry
       createdAt
-      updatedAt
-      total
-      subtotal
-      taxes
-      shipping
-      discounts
       orderType
     }
   }

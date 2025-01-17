@@ -16,6 +16,8 @@ import { CartProvider } from './components/context/CartContext';
 import VehiclesAdminPage from './pages/admin/vehicles';
 import AboutPage from './pages/AboutPage';
 import { AuthProvider } from './components/context/AuthContext';
+import ConfirmationPage from './pages/ConfirmationPage';
+import OrderHistory from './pages/OrderHistory';
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
                 <Route path="/admin" element={<VehiclesAdminPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/checkout" element={<PaymentPage />} />
+                <Route path="/confirmation" element={<ConfirmationPage />} />
+                <Route path="/history" element={<OrderHistory />} />
               </Route>
             </Routes>
           </BrowserRouter>
