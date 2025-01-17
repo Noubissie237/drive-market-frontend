@@ -4,8 +4,6 @@ import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { CLEAR_CART } from '../../api/cartApi';
-import { useMutation } from '@apollo/client';
 
 
 const Navbar = () => {
@@ -14,9 +12,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const cartRef = useRef<HTMLDivElement>(null);
-  const { cart, removeFromCart, updateQuantity, getTotalPrice, loading, error } = useCart();
-  const { isAuthenticated, userId, logout } = useAuth();
-  const [clearCart] = useMutation(CLEAR_CART);
+  const { cart, removeFromCart, updateQuantity, handleClearCart, getTotalPrice, loading, error } = useCart();
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,16 +39,6 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
-
-  const handleClearCart = async () => {
-    const { data } = await clearCart({
-      variables: {
-        customerId: userId
-      },
-      context: { service: 'cart' }
-    })
-    console.log("Cart Clean", data);
-  }
 
   return (
     <nav className="bg-white shadow-md">

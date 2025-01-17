@@ -1,23 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useMutation, useQuery, useApolloClient } from '@apollo/client';
-// import { Vehicle } from '../../types/vehicle';
 import { ADD_ITEM_TO_CART, REMOVE_ITEM_FROM_CART, CLEAR_CART, GET_CART_ITEMS, UPDATE_QUANTITY } from '../../api/cartApi';
 import { decodeToken } from './AuthContext';
 import { Vehicle } from '../../types/vehicle';
-
-// interface Vehicle {
-//     id: string;
-//     productName: string;
-//     price: number;
-//     stock: number;
-//     // status: VehicleStatus;
-//     specifications: string;
-//     // type: VehiculeType;
-//     // propulsion: PropulsionTyp;
-//     images: VehicleImage[];
-//     // options: VehicleOption[];
-//     // selectedOptions?: Array<{ id: string; name: string; price: number }>;
-// }
 
 interface CartItem {
     vehicle: Vehicle & { selectedOptions?: Array<{ id: string; name: string; price: number }> };
@@ -33,6 +18,7 @@ interface CartContextType {
     updateQuantity: (vehicleId: string, newQuantity: number) => void;
     getTotalPrice: () => number;
     getTotalItems: () => number;
+    handleClearCart: () => void;
     loading: boolean;
     error: any;
 }
@@ -164,6 +150,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const handleClearCart = async () => {
+        const { data } = await clearCartMutation({
+            variables: {
+                customerId: userId
+            },
+            context: { service: 'cart' }
+        });
+        if (data.clearCart) {
+            setCart(prevCart => prevCart.filter(item => item.vehicle.id === userId));
+        }
+    }
+
     const removeFromCart = async (vehicleId: string) => {
         if (!userId) return;
 
@@ -173,7 +171,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (data.removeItemFromCart) {
-            setCart(prevCart => prevCart.filter(item => item.vehicle.id !== vehicleId));
+            setCart(prevCart => prevCart.filter(item => item.vehicle.id !== "0"));
         }
     };
 
@@ -228,6 +226,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateQuantity,
             getTotalPrice,
             getTotalItems,
+            handleClearCart,
             loading,
             error,
         }}>
