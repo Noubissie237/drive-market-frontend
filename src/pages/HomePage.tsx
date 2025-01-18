@@ -197,7 +197,7 @@ const HomePage = () => {
             </p>
             <Button
               size="lg"
-              onClick={() => navigate('/contact')}
+              onClick={() => navigate('#contact')}
               className="bg-black text-white hover:bg-gray-800 transition-colors duration-300"
             >
               Prendre Rendez-vous

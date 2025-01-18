@@ -11,13 +11,15 @@ import { Vehicle } from '../types/vehicle';
 import { useAuth } from '../components/context/AuthContext';
 import Swal from 'sweetalert2';
 
-
 const CatalogPage = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const { addToCart } = useCart();
+
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedPropulsion, setSelectedPropulsion] = useState<string | null>(null);
 
   const handleAddToCart = (vehicle: Vehicle) => {
     if (!isAuthenticated) {
@@ -42,9 +44,16 @@ const CatalogPage = () => {
 
   const { loading, error, data } = useQuery(GET_VEHICLES);
 
+  console.log("Data from API:", data);
+
   const filteredVehicles = data?.vehicles.filter((vehicle: Vehicle) => {
     const searchLower = searchQuery.toLowerCase();
-    return vehicle.name.toLowerCase().includes(searchLower);
+    const matchesSearch = vehicle.name.toLowerCase().includes(searchLower);
+
+    const matchesType = selectedType ? vehicle.type.toString() === selectedType : true;
+    const matchesPropulsion = selectedPropulsion ? vehicle.propulsion.toString() === selectedPropulsion : true;
+
+    return matchesSearch && matchesType && matchesPropulsion;
   }) ?? [];
 
   const getStockStatus = (stock: number) => {
@@ -93,11 +102,14 @@ const CatalogPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
+        {/* Titre */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold">Catalogue de Véhicules</h1>
         </div>
 
+        {/* Barre de recherche et boutons */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
+          {/* Barre de recherche */}
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -109,6 +121,7 @@ const CatalogPage = () => {
             />
           </div>
 
+          {/* Bouton pour afficher/masquer les filtres */}
           <Button
             onClick={() => setShowFilters(!showFilters)}
             variant="outline"
@@ -118,6 +131,7 @@ const CatalogPage = () => {
             Filtres
           </Button>
 
+          {/* Bouton de recherche avancée */}
           <Button
             onClick={() => navigate("/deep-search")}
             variant="outline"
@@ -127,6 +141,55 @@ const CatalogPage = () => {
             Recherche avancée
           </Button>
         </div>
+
+        {/* Filtres (affichés conditionnellement) */}
+        {showFilters && (
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            {/* Filtre par type */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSelectedType("CAR")}
+                variant={selectedType === "CAR" ? 'default' : 'outline'}
+              >
+                Voitures
+              </Button>
+              <Button
+                onClick={() => setSelectedType("SCOOTER")}
+                variant={selectedType === "SCOOTER" ? 'default' : 'outline'}
+              >
+                Scooters
+              </Button>
+              <Button
+                onClick={() => setSelectedType(null)}
+                variant={selectedType === null ? 'default' : 'outline'}
+              >
+                Tous les types
+              </Button>
+            </div>
+
+            {/* Filtre par propulsion */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSelectedPropulsion("ELECTRIC")}
+                variant={selectedPropulsion === "ELECTRIC" ? 'default' : 'outline'}
+              >
+                Électrique
+              </Button>
+              <Button
+                onClick={() => setSelectedPropulsion("ESSENCE")}
+                variant={selectedPropulsion === "ESSENCE" ? 'default' : 'outline'}
+              >
+                Essence
+              </Button>
+              <Button
+                onClick={() => setSelectedPropulsion(null)}
+                variant={selectedPropulsion === null ? 'default' : 'outline'}
+              >
+                Toutes les propulsions
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
