@@ -37,7 +37,6 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
   };
 
   return (
@@ -178,12 +177,12 @@ const Navbar = () => {
 
             {/* Affiche LogOut si l'utilisateur est connecté, sinon affiche User */}
             {isAuthenticated ? (
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-5 w-5" />
+              <Button variant="ghost" size="icon" title='Déconnexion' onClick={handleLogout}>
+                <LogOut className="h-5 w-5 text-red-600" />
               </Button>
             ) : (
               <Link to="/login">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" title='Se connecter'>
                   <User className="h-5 w-5" />
                 </Button>
               </Link>

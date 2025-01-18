@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { Car, Eye, EyeOff, Mail, Lock, User, Phone, Building2, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Car, Eye, EyeOff, Mail, Lock, User, Phone, Building2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { useMutation } from '@apollo/client';
+import { CREATE_INDIVIDUAL_CUSTOMER, CREATE_CORPORATE_CUSTOMER } from '../api/customerApi';
 
 // Définition des interfaces
 interface FormData {
@@ -14,18 +17,8 @@ interface FormData {
   address: string;
   firstName: string;
   lastName: string;
-  registrationNumber: string;
-}
-
-interface CustomerData {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  address: string;
-  firstName?: string;
-  lastName?: string;
-  registrationNumber?: string;
+  fleetSize?: number;
+  subsidiaries?: Array<{ name: string }>;
 }
 
 type CustomerType = 'INDIVIDUAL' | 'CORPORATION';
@@ -41,41 +34,120 @@ const RegisterPage: React.FC = () => {
     address: '',
     firstName: '',
     lastName: '',
-    registrationNumber: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+
+  // Utilisation des mutations
+  const [createIndividualCustomer, { loading: individualLoading }] = useMutation(CREATE_INDIVIDUAL_CUSTOMER);
+  const [createCorporateCustomer, { loading: corporateLoading }] = useMutation(CREATE_CORPORATE_CUSTOMER);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    const customerData: CustomerData = {
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      address: formData.address,
-      name: ''
-    };
 
-    if (customerType === 'INDIVIDUAL') {
-      customerData.name = `${formData.firstName} ${formData.lastName}`;
-      customerData.firstName = formData.firstName;
-      customerData.lastName = formData.lastName;
-    } else {
-      customerData.name = formData.name;
-      customerData.registrationNumber = formData.registrationNumber;
+    // Validation des mots de passe
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: 'Les mots de passe ne correspondent pas.',
+      });
+      return;
     }
 
-  };
+    // Préparation des données en fonction du type de client
+    if (customerType === 'INDIVIDUAL') {
+      const individualData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        password: formData.password,
+        address: {
+          street: formData.address,
+          city: 'Yaoundé',
+          state: '',
+          country: '',
+          postalCode: '23700',
+        },
+        contactInfo: {
+          email: formData.email,
+          phone: formData.phone,
+        },
+      };
 
+      try {
+        const { data } = await createIndividualCustomer({
+          variables: { input: individualData },
+          context: { service: 'customer' }
+        });
+
+        if (data.createIndividualCustomer) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Succès',
+            text: 'Inscription réussie !',
+          }).then(() => {
+            navigate('/login');
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erreur',
+          text: 'Une erreur est survenue lors de l\'inscription.',
+        });
+        console.error(error);
+      }
+    } else if (customerType === 'CORPORATION') {
+      const corporateData = {
+        name: formData.name,
+        password: formData.password,
+        address: {
+          street: formData.address,
+          city: 'Yaoundé',
+          state: '',
+          country: '',
+          postalCode: '23700',
+        },
+        contactInfo: {          
+          email: formData.email,
+          phone: formData.phone,
+        },
+        fleetSize: 0,
+      };
+
+      try {
+        const { data } = await createCorporateCustomer({
+          variables: { input: corporateData },
+          context: { service: 'customer' }
+        });
+
+        if (data.createCorporateCustomer) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Succès',
+            text: 'Inscription réussie !',
+          }).then(() => {
+            navigate('/login');
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Erreur',
+          text: 'Une erreur est survenue lors de l\'inscription.',
+        });
+        console.error(error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -105,11 +177,10 @@ const RegisterPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCustomerType('INDIVIDUAL')}
-                  className={`p-4 border rounded-lg text-center ${
-                    customerType === 'INDIVIDUAL'
+                  className={`p-4 border rounded-lg text-center ${customerType === 'INDIVIDUAL'
                       ? 'border-black bg-black text-white'
                       : 'border-gray-300 hover:border-black'
-                  }`}
+                    }`}
                 >
                   <User className="h-5 w-5 mx-auto mb-2" />
                   <span className="text-sm">Particulier</span>
@@ -117,11 +188,10 @@ const RegisterPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCustomerType('CORPORATION')}
-                  className={`p-4 border rounded-lg text-center ${
-                    customerType === 'CORPORATION'
+                  className={`p-4 border rounded-lg text-center ${customerType === 'CORPORATION'
                       ? 'border-black bg-black text-white'
                       : 'border-gray-300 hover:border-black'
-                  }`}
+                    }`}
                 >
                   <Building2 className="h-5 w-5 mx-auto mb-2" />
                   <span className="text-sm">Entreprise</span>
@@ -130,47 +200,27 @@ const RegisterPage: React.FC = () => {
             </div>
 
             {customerType === 'CORPORATION' && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Nom de l'entreprise
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nom de l'entreprise
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Building2 className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
+                               shadow-sm focus:ring-black focus:border-black sm:text-sm"
+                      required
+                    />
                   </div>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
-                             shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    required
-                  />
                 </div>
-              </div>
-            )}
-
-            {customerType === 'CORPORATION' && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Numéro d'enregistrement
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FileText className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="registrationNumber"
-                    value={formData.registrationNumber}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md 
-                             shadow-sm focus:ring-black focus:border-black sm:text-sm"
-                    required
-                  />
-                </div>
-              </div>
+              </>
             )}
 
             {customerType === 'INDIVIDUAL' && (
@@ -291,6 +341,7 @@ const RegisterPage: React.FC = () => {
                   className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md 
                            shadow-sm focus:ring-black focus:border-black sm:text-sm"
                   required
+                  minLength={4}
                 />
                 <button
                   type="button"
@@ -337,18 +388,19 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-black hover:bg-gray-800"
+              disabled={individualLoading || corporateLoading}
             >
-              S'inscrire
+              {individualLoading || corporateLoading ? 'Inscription en cours...' : 'S\'inscrire'}
             </Button>
 
             <div className="text-center text-sm">
               <span className="text-gray-600">Déjà inscrit ?</span>
               {' '}
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="font-medium text-black hover:underline"
               >
                 Se connecter

@@ -1,5 +1,53 @@
 import { gql } from '@apollo/client';
 
+export const CREATE_INDIVIDUAL_CUSTOMER = gql`
+  mutation CreateIndividualCustomer($input: IndividualCustomerInput!) {
+    createIndividualCustomer(input: $input) {
+      id
+      name
+      address {
+        street
+        city
+        state
+        country
+        postalCode
+      }
+      contactInfo {
+        email
+        phone
+      }
+      customerDetails
+    }
+  }
+`;
+
+export const CREATE_CORPORATE_CUSTOMER = gql`
+  mutation CreateCorporateCustomer($input: CorporateCustomerInput!) {
+    createCorporateCustomer(input: $input) {
+      id
+      name
+      address {
+        street
+        city
+        state
+        country
+        postalCode
+      }
+      contactInfo {
+        email
+        phone
+      }
+      customerDetails
+      fleetSize
+      subsidiaries {
+        id
+        name
+      }
+    }
+  }
+`;
+
+
 export const GET_CUSTOMER_BY_ID = gql`
   query GetCustomerById($id: ID!) {
     customerById(id: $id) {
@@ -68,28 +116,6 @@ export const GET_CORPORATE_CUSTOMER_BY_ID = gql`
   }
 `;
 
-
-export const CREATE_INDIVIDUAL_CUSTOMER = gql`
-  mutation CreateIndividualCustomer($input: IndividualCustomerInput!) {
-    createIndividualCustomer(input: $input) {
-      id
-      name
-      address {
-        street
-        city
-        state
-        country
-        postalCode
-      }
-      contactInfo {
-        email
-        phone
-      }
-      customerDetails
-    }
-  }
-`;
-
 export const UPDATE_INDIVIDUAL_CUSTOMER = gql`
   mutation UpdateIndividualCustomer($id: ID!, $input: CustomerInfoInput!) {
     updateIndividualCustomer(id: $id, input: $input) {
@@ -114,31 +140,5 @@ export const UPDATE_INDIVIDUAL_CUSTOMER = gql`
 export const DELETE_INDIVIDUAL_CUSTOMER = gql`
   mutation DeleteIndividualCustomer($id: ID!) {
     deleteIndividualCustomer(id: $id)
-  }
-`;
-
-export const CREATE_CORPORATE_CUSTOMER = gql`
-  mutation CreateCorporateCustomer($input: CorporateCustomerInput!) {
-    createCorporateCustomer(input: $input) {
-      id
-      name
-      address {
-        street
-        city
-        state
-        country
-        postalCode
-      }
-      contactInfo {
-        email
-        phone
-      }
-      customerDetails
-      fleetSize
-      subsidiaries {
-        id
-        name
-      }
-    }
   }
 `;
