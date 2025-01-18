@@ -44,8 +44,6 @@ const CatalogPage = () => {
 
   const { loading, error, data } = useQuery(GET_VEHICLES);
 
-  console.log("Data from API:", data);
-
   const filteredVehicles = data?.vehicles.filter((vehicle: Vehicle) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = vehicle.name.toLowerCase().includes(searchLower);
