@@ -105,6 +105,10 @@ export const ADD_VEHICLE = gql`
         name
         description
         price
+        incompatibleOptions {
+          id
+          name
+        }
       }
     }
   }

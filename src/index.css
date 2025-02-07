@@ -65,3 +65,73 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
+
+/* Dans votre fichier global CSS */
+select[multiple] {
+  min-height: 150px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Style de la scrollbar pour Chrome/Safari */
+select[multiple]::-webkit-scrollbar {
+  width: 8px;
+}
+
+select[multiple]::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+select[multiple]::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+  border: 2px solid #f1f5f9;
+}
+
+select[multiple] option {
+  padding: 10px 12px;
+  margin: 4px 0;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+select[multiple] option:hover {
+  background-color: #e2e8f0;
+}
+
+select[multiple] option:checked {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 500;
+  position: relative;
+  transform: scale(1.02);
+}
+
+select[multiple]:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+/* Désactiver l'apparence native sur Firefox */
+select[multiple]:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
+
+/* Style pour les options désactivées */
+select[multiple] option:disabled {
+  color: #94a3b8;
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+}

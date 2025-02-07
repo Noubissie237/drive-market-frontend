@@ -7,7 +7,7 @@ import { useQuery } from '@apollo/client';
 import { GET_VEHICLE } from '../api/vehicleApi';
 import { useCart } from '../components/context/CartContext';
 import { Vehicle, VehicleImage, VehicleOption } from '../types/vehicle';
-import Swal from 'sweetalert2'; 
+import Swal from 'sweetalert2';
 
 const VehicleDetailPage = () => {
   const { addToCart } = useCart();
@@ -104,14 +104,25 @@ const VehicleDetailPage = () => {
 
   const handleOptionSelect = (optionId: number) => {
     setSelectedOptions(prev => {
+      const option = vehicleDetails.options.find((opt: VehicleOption) => opt.id === optionId.toString());
+
+      // Vérifier si l'option est déjà sélectionnée
       if (prev.includes(optionId)) {
         return prev.filter(id => id !== optionId);
       } else {
-        const option = vehicleDetails.options.find((opt: VehicleOption) => opt.id === optionId.toString());
-        const newSelection = [...prev, optionId].filter(id =>
-          !option?.incompatibleWith?.includes(id)
-        );
-        return newSelection;
+        // Vérifier si l'option est incompatible avec une option déjà sélectionnée
+        const isIncompatible = prev.some(selectedOptionId => {
+          const selectedOption = vehicleDetails.options.find((opt: VehicleOption) => opt.id === selectedOptionId.toString());
+          return selectedOption?.incompatibleWith?.includes(optionId.toString());
+        });
+
+        if (isIncompatible) {
+          // Si l'option est incompatible, ne pas l'ajouter à la sélection
+          return prev;
+        } else {
+          // Sinon, ajouter l'option à la sélection
+          return [...prev, optionId];
+        }
       }
     });
   };
@@ -208,39 +219,40 @@ const VehicleDetailPage = () => {
             <h3 className="text-xl font-semibold mb-4">Options disponibles</h3>
             <div className="space-y-4">
               {vehicleDetails.options.map((option: VehicleOption) => {
-                const isSelected = selectedOptions.includes(Number(option.id)); // Convertir option.id en number
-                const isDisabled = option.incompatibleOptions?.some((incompatible) =>
-                  selectedOptions.includes(Number(incompatible.id)) // Convertir incompatible.id en number
-                );
+                const isSelected = selectedOptions.includes(Number(option.id));
+                const isDisabled = selectedOptions.some(selectedOptionId => {
+                  const selectedOption = vehicleDetails.options.find((opt: VehicleOption) => opt.id === selectedOptionId.toString());
+                  return selectedOption?.incompatibleWith?.includes(option.id);
+                });
 
                 return (
                   <div
                     key={option.id}
-                    className={`p-4 rounded-lg border ${isSelected ? 'border-blue-500 bg-blue-50' :
-                      isDisabled ? 'border-gray-200 bg-gray-50 opacity-50' :
-                        'border-gray-200 hover:border-blue-200'
+                    className={`p-4 rounded-lg border ${isSelected
+                        ? 'border-blue-500 bg-blue-50'
+                        : isDisabled
+                          ? 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-blue-200'
                       }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{option.name}</h4>
-                          {option.incompatibleOptions && (
-                            <Info className="h-4 w-4 text-gray-400" />
+                          {isDisabled && (
+                            <Info
+                              className="h-4 w-4 text-gray-400"
+                            />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {option.description} {/* Utilise description au lieu de specifications */}
-                        </p>
+                        <p className="text-sm text-gray-600 mt-1">{option.description}</p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-medium">
-                          {option.price.toLocaleString()} XAF
-                        </span>
+                        <span className="font-medium">{option.price.toLocaleString()} XAF</span>
                         <Button
                           variant={isSelected ? "default" : "outline"}
                           disabled={isDisabled && !isSelected}
-                          onClick={() => handleOptionSelect(Number(option.id))} // Convertir option.id en number
+                          onClick={() => handleOptionSelect(Number(option.id))}
                         >
                           {isSelected && <Check className="h-4 w-4 mr-2" />}
                           {isSelected ? 'Sélectionné' : 'Ajouter'}

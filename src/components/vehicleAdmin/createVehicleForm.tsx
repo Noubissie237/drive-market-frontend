@@ -54,14 +54,17 @@ const formSchema = z.object({
     order: z.number()
   })).min(1, 'Au moins une image est requise'),  // Au moins une image est requise
 
-  options: z.array(z.object({
-    name: z.string().min(1, 'Le nom est requis'),
-    description: z.string().optional(),
-    price: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-      message: 'Le prix doit être un nombre positif'
-    }),
-    incompatibleOptions: z.array(z.string()).optional()
-  }))
+  options: z.array(
+    z.object({
+      name: z.string().min(1, 'Le nom est requis'),
+      description: z.string().optional(),
+      price: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+        message: 'Le prix doit être un nombre positif',
+      }),
+      clientTempId: z.string().min(1, 'Un ID temporaire est requis'), // ⭐ Nouveau champ
+      incompatibleOptions: z.array(z.string()).optional().default([]), // ⭐ Nouveau champ
+    })
+  ),
 });
 
 
@@ -72,7 +75,6 @@ interface CreateVehicleFormProps {
   onClose: () => void;
   onSuccess?: () => void;
 }
-
 
 export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
   isOpen,
@@ -98,10 +100,8 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
   });
 
   const onSubmit = async (values: FormValues) => {
+    console.log(values.options)
     try {
-      // Log des valeurs soumises
-      console.log('Valeurs soumises:', values);
-
       const response = await AddVehicle({
         variables: {
           type: values.type,
@@ -110,18 +110,19 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
           price: parseFloat(values.price),
           stock: parseInt(values.stock),
           specifications: values.specifications,
-          images: values.images.map(img => ({
+          images: values.images.map((img) => ({
             url: img.url,
             caption: img.caption || '',
-            order: img.order
+            order: img.order,
           })),
-          options: values.options.map(opt => ({
+          options: values.options.map((opt) => ({
             name: opt.name,
             description: opt.description || '',
             price: parseFloat(opt.price),
-            incompatibleOptions: []
-          }))
-        }
+            clientTempId: opt.clientTempId, // ⭐ Inclure l'ID temporaire
+            incompatibleOptions: opt.incompatibleOptions || [], // ⭐ Inclure les incompatibilités
+          })),
+        },
       });
 
       if (response.data) {
@@ -131,22 +132,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
         onClose();
       }
     } catch (error) {
-      // Log détaillé des erreurs
-      if (error instanceof Error) {
-        console.error('Erreur lors de la création du véhicule:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-      }
-
-      // Log des erreurs de validation du formulaire
-      const formErrors = form.formState.errors;
-      if (Object.keys(formErrors).length > 0) {
-        console.error('Erreurs de validation du formulaire:', formErrors);
-      }
-
-      // Vous pourriez également ajouter ici une notification pour l'utilisateur
+      console.error('Erreur lors de la création du véhicule:', error);
     }
   };
 
@@ -210,8 +196,6 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
     }
   };
 
-
-
   const imagesFields = form.watch('images');
   const optionsFields = form.watch('options');
 
@@ -260,7 +244,13 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
     const currentOptions = form.getValues('options');
     form.setValue('options', [
       ...currentOptions,
-      { name: '', description: '', price: '', incompatibleOptions: [] }
+      {
+        name: '',
+        description: '',
+        price: '',
+        clientTempId: crypto.randomUUID(), // ⭐ Générer un ID temporaire
+        incompatibleOptions: [], // ⭐ Initialiser les incompatibilités
+      },
     ]);
   };
 
@@ -570,6 +560,36 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name={`options.${index}.incompatibleOptions`}
+                        render={({ field }) => (
+                          <FormItem name={`options.${index}.incompatibleOptions`}>
+                            <FormLabel>Options incompatibles (optionnel)</FormLabel>
+                            <FormControl>
+                              <Select
+                                multiple
+                                value={field.value || []}
+                                onValueChange={(values) => field.onChange(values)}
+                              >
+                                {optionsFields
+                                  .filter((opt) => opt.clientTempId !== optionsFields[index].clientTempId)
+                                  .map((opt) => (
+                                    <SelectItem
+                                      key={opt.clientTempId}
+                                      value={opt.clientTempId}
+                                    >
+                                      {opt.name || 'Option sans nom'}
+                                    </SelectItem>
+                                  ))}
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                     </div>
                     <Button
                       type="button"

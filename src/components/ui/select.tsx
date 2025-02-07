@@ -2,12 +2,20 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-    onValueChange?: (value: string) => void;
-    defaultValue?: string;
+    onValueChange?: (value: string[]) => void;
+    value?: string[];
+    multiple?: boolean;
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-    ({ className, onValueChange, defaultValue, children, ...props }, ref) => {
+    ({ className, onValueChange, value = [], children, multiple, ...props }, ref) => {
+        const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+            if (multiple) {
+                const selectedOptions = Array.from(event.target.selectedOptions).map(option => option.value);
+                onValueChange?.(selectedOptions);
+            }
+        };
+
         return (
             <div className="relative">
                 <select
@@ -16,8 +24,9 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                         "flex h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                         className
                     )}
-                    onChange={(e) => onValueChange?.(e.target.value)}
-                    defaultValue={defaultValue}
+                    onChange={handleChange}
+                    multiple={multiple}
+                    value={value}
                     {...props}
                 >
                     {children}
