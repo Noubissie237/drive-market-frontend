@@ -309,21 +309,21 @@ const HomePage = () => {
                 image: '/img/vehicle1.jpg',
                 title: "SUV Électrique à -20%",
                 description: "Profitez d'une réduction exceptionnelle sur notre modèle phare.",
-                link: '/promotions/suv-electrique',
+                link: '/catalogue',
                 discount: "-20%",
               },
               {
                 image: '/img/vehicle2.jpg',
                 title: "Essence : Offre Financière",
                 description: "Crédit avantageux pour l'achat de véhicules essence.",
-                link: '/promotions/offre-essence',
+                link: '/catalogue',
                 discount: "-15%",
               },
               {
                 image: '/img/vehicle3.png',
                 title: "Scooters à Prix Cassés",
                 description: "Économisez jusqu'à 30% sur notre gamme de scooters.",
-                link: '/promotions/scooters',
+                link: '/catalogue',
                 discount: "-30%",
               }
             ].map((promo, index) => (
@@ -371,13 +371,13 @@ const HomePage = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <Mail className="h-6 w-6 text-gray-600" />
-                  <p className="text-gray-600">contact@DriveMarket.fr</p>
+                  <p className="text-gray-600">contact@DriveMarket.cm</p>
                 </div>
               </div>
               <div className="mt-8">
                 <Button
                   size="lg"
-                  onClick={() => navigate('/#contact')}
+                  onClick={() => navigate('/contact')}
                   className="bg-black text-white hover:bg-gray-800 transition-colors duration-300"
                 >
                   Nous Contacter
@@ -391,7 +391,7 @@ const HomePage = () => {
               <div className="space-y-4">
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Lundi - Vendredi</span>
-                  <span className="text-gray-600">9h00 - 19h00</span>
+                  <span className="text-gray-600">09h00 - 19h00</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Samedi</span>

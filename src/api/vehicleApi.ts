@@ -39,6 +39,7 @@ export const GET_VEHICLES = gql`
     vehicles {
       id
       name
+      date_added
       price
       type
       propulsion

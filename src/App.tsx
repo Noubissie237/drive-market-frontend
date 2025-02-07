@@ -18,6 +18,10 @@ import AboutPage from './pages/AboutPage';
 import { AuthProvider } from './components/context/AuthContext';
 import ConfirmationPage from './pages/ConfirmationPage';
 import OrderHistory from './pages/OrderHistory';
+import CatalogeElectricPage from './pages/CatalogueElectricPage';
+import CatalogeEssencePage from './pages/CatalogueEssencePage';
+import CatalogeScooterPage from './pages/CatalogueScooterPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -45,6 +49,10 @@ function App() {
                 <Route path="/checkout" element={<PaymentPage />} />
                 <Route path="/confirmation" element={<ConfirmationPage />} />
                 <Route path="/history" element={<OrderHistory />} />
+                <Route path="/catalogue/vehicules-electriques" element={<CatalogeElectricPage />} />
+                <Route path="/catalogue/vehicules-essence" element={<CatalogeEssencePage />} />
+                <Route path="/catalogue/scooters" element={<CatalogeScooterPage />} />
+                <Route path="/contact" element={<ContactPage />} />
               </Route>
             </Routes>
           </BrowserRouter>
