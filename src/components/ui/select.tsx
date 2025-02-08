@@ -2,8 +2,8 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-    onValueChange?: (value: string[]) => void;
-    value?: string[];
+    onValueChange?: (value: string | string[]) => void;
+    value?: string | string[];
     multiple?: boolean;
 }
 
@@ -11,8 +11,13 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     ({ className, onValueChange, value = [], children, multiple, ...props }, ref) => {
         const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
             if (multiple) {
+                // Gestion des sélections multiples
                 const selectedOptions = Array.from(event.target.selectedOptions).map(option => option.value);
                 onValueChange?.(selectedOptions);
+            } else {
+                // Gestion des sélections uniques
+                const selectedValue = event.target.value;
+                onValueChange?.(selectedValue);
             }
         };
 
@@ -26,7 +31,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                     )}
                     onChange={handleChange}
                     multiple={multiple}
-                    value={value}
+                    value={multiple ? value : value}
                     {...props}
                 >
                     {children}

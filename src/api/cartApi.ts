@@ -13,7 +13,7 @@ export const GET_CART_ITEMS = gql`
       options {
         id
         name
-        value
+        price
       }
     }
   }
@@ -41,7 +41,7 @@ export const GET_CART_HISTORY = gql`
         options {
           id
           name
-          value
+          price
         }
       }
     }
@@ -63,7 +63,7 @@ export const ADD_ITEM_TO_CART = gql`
         options {
           id
           name
-          value
+          price
         }
       }
       total
@@ -88,7 +88,7 @@ export const UPDATE_QUANTITY = gql`
         options {
           id
           name
-          value
+          price
         }
       }
       total
@@ -114,7 +114,7 @@ export const REMOVE_ITEM_FROM_CART = gql`
         options {
           id
           name
-          value
+          price
         }
       }
       total
@@ -138,7 +138,7 @@ export const CLEAR_CART = gql`
       #   options {
       #     id
       #     name
-      #     value
+      #     price
       #   }
       # }
       # total
@@ -162,7 +162,7 @@ export const VALIDATE_CART = gql`
         options {
           id
           name
-          value
+          price
         }
       }
       total
@@ -186,7 +186,7 @@ export const RESTORE_CART_STATE = gql`
         options {
           id
           name
-          value
+          price
         }
       }
       total

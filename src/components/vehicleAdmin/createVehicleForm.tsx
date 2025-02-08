@@ -303,7 +303,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
                       <FormItem name="type">
                         <FormLabel>Type</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} multiple={false}>
                             <SelectItem value="CAR">Voiture</SelectItem>
                             <SelectItem value="SCOOTER">Scooter</SelectItem>
                           </Select>
@@ -320,7 +320,7 @@ export const CreateVehicleForm: React.FC<CreateVehicleFormProps> = ({
                       <FormItem name="propulsion">
                         <FormLabel>Propulsion</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} multiple={false}>
                             <SelectItem value="ELECTRIC">Électrique</SelectItem>
                             <SelectItem value="ESSENCE">Essence</SelectItem>
                           </Select>

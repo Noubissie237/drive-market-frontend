@@ -79,7 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         selectedOptions: item.options.map((opt: any) => ({
                             id: opt.id,
                             name: opt.name,
-                            price: parseFloat(opt.value),
+                            price: parseFloat(opt.price),
                         })),
                     },
                     quantity: item.quantity,
@@ -112,7 +112,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             price: vehicle.price,
             quantity: 1,
             image: vehicle.images[0].url,
-            options: vehicle.selectedOptions?.map(opt => opt.name) || [],
+            options: vehicle.selectedOptions?.map(opt => ({
+                id: opt.id,
+                name: opt.name,
+                price: opt.price,
+            })) || [],
         };
 
         console.log(itemInput)
