@@ -1,39 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client";
 import { FaUserEdit, FaSave, FaTrash, FaTimes } from "react-icons/fa";
+import { GET_CUSTOMER_BY_EMAIL, UPDATE_CUSTOMER, DELETE_CUSTOMER } from "../graphql/queries";
+import type { Address, ContactInfo } from "../types";
+import { useAuth } from "../components/context/AuthContext";
+
+interface UserState {
+  id?: string;
+  name?: string;
+  password?: string;
+  address?: Address;
+  contactInfo?: ContactInfo;
+}
 
 const UserProfile = () => {
-  const [user, setUser] = useState({
-    nom: "Noubissie kamga ",
-    prenom: "Wilfried",
-    email: "nkw@gmail.com",
-    address: "Obili , derriere l'eglise ",
-    password: "12345mot-de-passe", 
+  const { userEmail } = useAuth(); // Récupération de l'e-mail de l'utilisateur
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  const { loading, error, data } = useQuery(GET_CUSTOMER_BY_EMAIL, {
+    variables: { email: userEmail },
+    skip: !userEmail, // Ne pas exécuter si l'e-mail n'est pas disponible
   });
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // État pour la modale de suppression
+  const [updateCustomer] = useMutation(UPDATE_CUSTOMER);
+  const [deleteCustomer] = useMutation(DELETE_CUSTOMER);
 
-  const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
+  const [user, setUser] = useState<UserState>({});
+
+  useEffect(() => {
+    if (data?.customerByEmail) {
+      setUser(data.customerByEmail);
+    }
+  }, [data]);
+
+  if (loading) return <div className="text-center p-8">Chargement...</div>;
+  if (error) return <div className="text-center p-8 text-red-600">Erreur: {error.message}</div>;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+    if (name.includes('.')) {
+      const [section, field] = name.split('.');
+      setUser(prev => ({
+        ...prev,
+        [section]: {
+          ...prev[section as keyof UserState],
+          [field]: value
+        }
+      }));
+    } else {
+      setUser(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
-  const handleSave = () => {
-    console.log("Informations mises à jour :", user);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const input = {
+        name: user.name,
+        password: user.password,
+        address: user.address,
+        contactInfo: user.contactInfo,
+      };
+
+      await updateCustomer({
+        variables: {
+          id: user.id,
+          input,
+        },
+      });
+
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour:", err);
+    }
   };
 
-  const handleDeleteAccount = () => {
-    console.log("Compte supprimé");
-    setIsDeleteModalOpen(false); // Fermer la modale après suppression
-  };
-
-  const openDeleteModal = () => {
-    setIsDeleteModalOpen(true); // Ouvrir la modale de confirmation
-  };
-
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false); // Fermer la modale
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteCustomer({
+        variables: { id: user.id },
+      });
+      window.location.href = "/logout"; // Rediriger vers la page de déconnexion
+    } catch (err) {
+      console.error("Erreur lors de la suppression:", err);
+    }
   };
 
   return (
@@ -43,58 +96,64 @@ const UserProfile = () => {
       </h1>
 
       {isEditing ? (
-        // Mode édition
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Prénom :</label>
-            <input
-              type="text"
-              name="nom"
-              value={user.nom}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-            />
-          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nom :</label>
             <input
               type="text"
-              name="prenom"
-              value={user.prenom}
+              name="name"
+              value={user.name || ''}
               onChange={handleInputChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email :</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail :</label>
             <input
               type="email"
-              name="email"
-              value={user.email}
+              name="contactInfo.email"
+              value={user.contactInfo?.email || ''}
               onChange={handleInputChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Adresse :</label>
-            <input
-              type="text"
-              name="address"
-              value={user.address}
-              onChange={handleInputChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-            />
-          </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe :</label>
             <input
               type="password"
               name="password"
-              value={user.password}
+              value={user.password || ''}
               onChange={handleInputChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone :</label>
+            <input
+              type="text"
+              name="contactInfo.phone"
+              value={user.contactInfo?.phone || ''}
+              onChange={handleInputChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Adresse :</label>
+            <input
+              type="text"
+              name="address.street"
+              value={user.address?.street || ''}
+              onChange={handleInputChange}
+              placeholder="Rue"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all mb-2"
+            />
+           
+          </div>
+
           <div className="flex space-x-4">
             <button
               onClick={handleSave}
@@ -111,31 +170,27 @@ const UserProfile = () => {
           </div>
         </div>
       ) : (
-        // Mode affichage
         <div className="space-y-6">
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              <strong className="text-indigo-600">Prénom :</strong> {user.nom}
+              <strong className="text-indigo-600">Nom :</strong> {user.name}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              <strong className="text-indigo-600">Nom :</strong> {user.prenom}
+              <strong className="text-indigo-600">E-mail :</strong> {user.contactInfo?.email}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              <strong className="text-indigo-600">Email :</strong> {user.email}
+              <strong className="text-indigo-600">Téléphone :</strong> {user.contactInfo?.phone}
             </p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-gray-700">
-              <strong className="text-indigo-600">Adresse :</strong> {user.address}
-            </p>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-gray-700">
-              <strong className="text-indigo-600">Mot de passe :</strong> {user.password}
+              <strong className="text-indigo-600">Adresse :</strong><br />
+              {user.address?.street}<br />
+              {user.address?.city}
             </p>
           </div>
           <div className="flex space-x-4">
@@ -146,7 +201,7 @@ const UserProfile = () => {
               <FaUserEdit className="mr-2" /> Modifier mes informations
             </button>
             <button
-              onClick={openDeleteModal}
+              onClick={() => setIsDeleteModalOpen(true)}
               className="flex items-center px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
             >
               <FaTrash className="mr-2" /> Supprimer mon compte
@@ -155,7 +210,6 @@ const UserProfile = () => {
         </div>
       )}
 
-      {/* Modale de confirmation de suppression */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-300 scale-95 hover:scale-100">
@@ -171,7 +225,7 @@ const UserProfile = () => {
                 <FaTrash className="mr-2" /> Supprimer
               </button>
               <button
-                onClick={closeDeleteModal}
+                onClick={() => setIsDeleteModalOpen(false)}
                 className="flex items-center px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
               >
                 <FaTimes className="mr-2" /> Annuler

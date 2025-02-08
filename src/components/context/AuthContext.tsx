@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface AuthContextType {
   isAuthenticated: boolean;
   userId: string | null;
+  userEmail: string | null; // Ajout de l'e-mail
   login: (token: string) => void;
   logout: () => void;
 }
@@ -11,16 +12,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null); 
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null); // État pour l'e-mail
 
-  // Vérifie si un token est présent dans localStorage au chargement
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = decodeToken(token);
       if (decodedToken && decodedToken.id) {
         setIsAuthenticated(true);
-        setUserId(decodedToken.id); 
+        setUserId(decodedToken.id);
+        setUserEmail(decodedToken.email); // Récupération de l'e-mail
       }
     }
   }, []);
@@ -30,18 +32,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const decodedToken = decodeToken(token);
     if (decodedToken && decodedToken.id) {
       setIsAuthenticated(true);
-      setUserId(decodedToken.id); 
+      setUserId(decodedToken.id);
+      setUserEmail(decodedToken.email); // Récupération de l'e-mail
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
-    setUserId(null); 
+    setUserId(null);
+    setUserEmail(null); // Réinitialisation de l'e-mail
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userId, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userId, userEmail, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -54,7 +58,6 @@ export const useAuth = () => {
   }
   return context;
 };
-
 
 export const decodeToken = (token: string) => {
   try {
